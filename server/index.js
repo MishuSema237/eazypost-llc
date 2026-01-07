@@ -25,6 +25,7 @@ mongoose.connect(MONGO_URI)
 
 const shipmentSchema = new mongoose.Schema({
   trackingNumber: { type: String, required: true, unique: true },
+  showMap: { type: Boolean, default: true },
   shipperName: String,
   shipperAddress: String,
   shipperPhone: String,
@@ -201,12 +202,13 @@ app.delete('/api/shipments/:id', validateId, asyncHandler(async (req, res) => {
 }));
 
 app.patch('/api/shipments/:id/tracking', validateId, asyncHandler(async (req, res) => {
-  const { status, currentLocation, historyEntry } = req.body;
+  const { status, currentLocation, historyEntry, showMap } = req.body;
   const shipment = await Shipment.findById(req.params.id);
   if (!shipment) return res.status(404).json({ message: 'Manifest not found' });
 
   shipment.status = status;
   shipment.currentLocation = currentLocation;
+  if (showMap !== undefined) shipment.showMap = showMap;
   shipment.shipmentHistory.push(historyEntry);
   await shipment.save();
 

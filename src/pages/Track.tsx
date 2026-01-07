@@ -177,8 +177,16 @@ const Track: React.FC = () => {
               </div>
 
               {/* Map View */}
-              <div className="bg-gray-50 border border-gray-200 overflow-hidden shadow-inner h-[400px]">
-                <ShipmentMap shipment={shipment} isDarkMode={false} />
+              <div className="border border-gray-100 bg-white p-2 md:p-4 shadow-sm h-[300px] md:h-[400px]">
+                {shipment.showMap !== false ? (
+                  <ShipmentMap shipment={shipment} isDarkMode={false} />
+                ) : (
+                  <div className="w-full h-full bg-gray-50 flex flex-col items-center justify-center text-center p-8">
+                    <Icon icon={FaGlobe} className="text-6xl text-gray-200 mb-4" />
+                    <h3 className="text-eazypost-blue font-black uppercase text-sm tracking-widest">Global Transit Network</h3>
+                    <p className="text-xs text-gray-400 mt-2 font-bold uppercase">Location data encrypted</p>
+                  </div>
+                )}
               </div>
             </div>
 

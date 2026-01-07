@@ -109,7 +109,8 @@ export const updateTrackingInfo = async (
   id: string,
   status: string,
   currentLocation: string,
-  remarks?: string
+  remarks?: string,
+  showMap?: boolean
 ): Promise<Shipment> => {
   try {
     const now = new Date();
@@ -128,7 +129,8 @@ export const updateTrackingInfo = async (
       body: JSON.stringify({
         status,
         currentLocation,
-        historyEntry
+        historyEntry,
+        showMap
       }),
     });
 

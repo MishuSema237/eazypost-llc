@@ -156,7 +156,7 @@ const Home: React.FC = () => {
             <div className="relative flex items-center justify-center p-12">
               <div className="absolute inset-0 bg-eazypost-red/5 rounded-full blur-3xl"></div>
               <div className="relative z-10 p-16 border-l-8 border-eazypost-red bg-white/5 backdrop-blur-sm shadow-2xl">
-                <Icon icon={FaGlobe} className="text-[200px] md:text-[300px] text-eazypost-blue opacity-30 animate-pulse-slow" />
+                <Icon icon={FaGlobe} className="text-[200px] md:text-[300px] text-eazypost-red opacity-60 animate-pulse-slow" />
               </div>
             </div>
           </div>

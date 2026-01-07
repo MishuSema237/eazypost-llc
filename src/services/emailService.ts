@@ -72,6 +72,7 @@ export const sendTestEmails = async () => {
     const testData: Shipment = {
       id: 'test-id',
       trackingNumber: 'TEST123456',
+      showMap: true,
       shipperName: 'Test Shipper',
       shipperEmail: 'test@example.com',
       shipperAddress: 'Test Shipper Address',

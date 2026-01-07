@@ -66,7 +66,8 @@ const defaultManifestForm: ManifestFormData = {
   currentLocation: '',
   totalVolumetricWeight: 0,
   totalVolume: 0,
-  totalActualWeight: 0
+  totalActualWeight: 0,
+  showMap: true
 };
 
 const AdministrationAndDevelopment: React.FC = () => {
@@ -78,7 +79,7 @@ const AdministrationAndDevelopment: React.FC = () => {
   const [showManifestForm, setShowManifestForm] = useState(false);
   const [showTrackingForm, setShowTrackingForm] = useState(false);
   const [manifestFormData, setManifestFormData] = useState<ManifestFormData>(defaultManifestForm);
-  const [trackingFormData, setTrackingFormData] = useState({ status: '', currentLocation: '', remarks: '' });
+  const [trackingFormData, setTrackingFormData] = useState({ status: '', currentLocation: '', remarks: '', showMap: true });
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -139,7 +140,8 @@ const AdministrationAndDevelopment: React.FC = () => {
         targetId,
         trackingFormData.status,
         trackingFormData.currentLocation,
-        trackingFormData.remarks
+        trackingFormData.remarks,
+        trackingFormData.showMap
       );
       setShowTrackingForm(false);
       loadData();
@@ -266,7 +268,7 @@ const AdministrationAndDevelopment: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 flex justify-center gap-2">
-                      <button onClick={() => { setSelectedShipment(m); setTrackingFormData({ status: m.status, currentLocation: m.currentLocation, remarks: '' }); setShowTrackingForm(true); }} className="p-2 text-eazypost-blue hover:text-eazypost-red"><Icon icon={FaHistory} /></button>
+                      <button onClick={() => { setSelectedShipment(m); setTrackingFormData({ status: m.status, currentLocation: m.currentLocation, remarks: '', showMap: m.showMap !== false }); setShowTrackingForm(true); }} className="p-2 text-eazypost-blue hover:text-eazypost-red"><Icon icon={FaHistory} /></button>
                       <button onClick={() => handleNotifyParties(m)} className="p-2 text-eazypost-blue hover:text-eazypost-red"><Icon icon={FaEnvelope} /></button>
                       <button onClick={() => {
                         const targetId = m.id || (m as any)._id;
@@ -314,7 +316,18 @@ const AdministrationAndDevelopment: React.FC = () => {
 
               {/* Shipment Details Section */}
               <div className="mt-12 pt-12 border-t border-gray-100">
-                <h3 className="font-black uppercase text-xs tracking-[0.3em] text-eazypost-red mb-8">Shipment Configuration</h3>
+                <div className="flex justify-between items-center mb-8">
+                  <h3 className="font-black uppercase text-xs tracking-[0.3em] text-eazypost-red">Shipment Configuration</h3>
+                  <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={manifestFormData.showMap}
+                      onChange={(e) => setManifestFormData({ ...manifestFormData, showMap: e.target.checked })}
+                      className="h-5 w-5 text-eazypost-blue border-gray-300 rounded focus:ring-eazypost-blue"
+                    />
+                    <span className="text-xs font-black uppercase text-gray-500 tracking-wider">Show Live Map</span>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div className="space-y-4">
                     <label className="text-[10px] font-black uppercase text-gray-400">Logistics Routing</label>
@@ -480,6 +493,15 @@ const AdministrationAndDevelopment: React.FC = () => {
                 <div>
                   <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">Current Position</label>
                   <input type="text" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase" value={trackingFormData.currentLocation} onChange={e => setTrackingFormData({ ...trackingFormData, currentLocation: e.target.value })} required />
+                </div>
+                <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded bg-gray-50">
+                  <input
+                    type="checkbox"
+                    checked={trackingFormData.showMap}
+                    onChange={(e) => setTrackingFormData({ ...trackingFormData, showMap: e.target.checked })}
+                    className="h-5 w-5 text-eazypost-blue border-gray-300 rounded focus:ring-eazypost-blue"
+                  />
+                  <span className="text-sm font-black uppercase text-gray-500 tracking-wider">Show Live Map</span>
                 </div>
                 <div>
                   <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">Manifest Status</label>

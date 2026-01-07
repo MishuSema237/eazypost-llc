@@ -247,6 +247,7 @@ const LiveMap: React.FC<LiveMapProps> = ({
         mapInstanceRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center.lat, center.lng, zoom, showMarker, markerTitle, origin, destination, currentLocation, showRoute, routeColor, completedRouteColor]);
 
   if (mapError) {
@@ -287,16 +288,28 @@ const LiveMap: React.FC<LiveMapProps> = ({
         style={{ height, zIndex: 1, border: '2px solid red' }}
       />
       {showResetButton && (
-        <button
-          onClick={resetMapView}
-          className="absolute top-4 right-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg px-3 py-2 text-sm font-medium transition-colors duration-200 z-10"
-          title="Reset map view"
-          style={{ zIndex: 30 }}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
+        <div className="absolute top-4 right-4 flex flex-col gap-2 z-[30]">
+          <button
+            onClick={resetMapView}
+            className="bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg shadow-lg p-2 transition-colors duration-200"
+            title="Reset map view"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${center.lat},${center.lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-eazypost-blue dark:text-blue-400 rounded-lg shadow-lg p-2 transition-colors duration-200 flex items-center justify-center"
+            title="Open in Google Maps"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
       )}
 
       {(origin && destination) && (

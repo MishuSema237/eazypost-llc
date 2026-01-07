@@ -90,9 +90,9 @@ const Footer: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 text-xs text-gray-400">
             <p>© 2026 EazyPost LLC. All rights reserved.</p>
             <div className="flex space-x-6">
-              <a href="#" className="hover:text-white transition-colors">Facebook</a>
-              <a href="#" className="hover:text-white transition-colors">Twitter</a>
-              <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
+              <a href="/" className="hover:text-white transition-colors">Facebook</a>
+              <a href="/" className="hover:text-white transition-colors">Twitter</a>
+              <a href="/" className="hover:text-white transition-colors">LinkedIn</a>
             </div>
           </div>
         </div>

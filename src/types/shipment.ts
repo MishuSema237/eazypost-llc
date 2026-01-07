@@ -21,6 +21,7 @@ export interface ShipmentHistory {
 export interface Shipment {
     id: string;
     trackingNumber: string;
+    showMap: boolean;
 
     // Shipper Information
     shipperName: string;
