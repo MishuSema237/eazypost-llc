@@ -1,21 +1,11 @@
 import React, { useState } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
 import { toast } from 'react-toastify';
-import {
-  FaEnvelope,
-  FaPhone,
-  FaMapMarkerAlt,
-  FaClock,
-  FaUser,
-  FaPaperPlane,
-  FaSpinner,
-} from 'react-icons/fa';
-import Icon from '../components/icons/Icon';
+import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaUser, FaPaperPlane, FaSpinner, FaHeadset } from 'react-icons/fa';
 import AnimatedCard from '../components/animations/AnimatedCard';
+import Icon from '../components/icons/Icon';
 import { sendContactFormEmail } from '../services/emailService';
 
 const Contact: React.FC = () => {
-  const { isDarkMode } = useTheme();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -26,15 +16,19 @@ const Contact: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name || !formData.email || !formData.message) {
+      toast.error('Required fields missing');
+      return;
+    }
     setLoading(true);
 
     try {
       await sendContactFormEmail(formData);
-      toast.success('Message sent successfully!');
+      toast.success('Communication dispatched successfully');
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
       console.error('Failed to send contact form:', error);
-      toast.error('Failed to send message. Please try again.');
+      toast.error('Dispatch failed. Retry terminal connection.');
     } finally {
       setLoading(false);
     }
@@ -46,174 +40,150 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative bg-[#351c15] dark:bg-gray-800 py-16">
-        <div className="absolute inset-0">
+      <div className="relative bg-eazypost-blue pt-24 pb-16 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
           <img
             src="https://images.unsplash.com/photo-1552581234-26160f608093?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
-            alt="Contact us"
-            className="w-full h-full object-cover opacity-30 dark:opacity-20"
+            alt="Contact"
+            className="w-full h-full object-cover"
           />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Contact Us
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+          <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight sm:text-5xl">
+            CONTACT <span className="text-eazypost-red">LOGISTICS</span>
           </h1>
-          <p className="mt-6 text-xl text-gray-300 dark:text-gray-200 max-w-3xl mx-auto">
-            Get in touch with our team for any inquiries or support.
+          <div className="w-20 h-1 bg-eazypost-red mx-auto mt-6"></div>
+          <p className="mt-8 text-xl text-gray-300 max-w-3xl mx-auto uppercase tracking-widest font-bold text-xs">
+            Direct Line to EazyPost LLC Global Operations & Support
           </p>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
           {/* Contact Form */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Send us a Message</h2>
+          <div>
+            <div className="mb-10">
+              <h2 className="text-3xl font-black text-eazypost-blue uppercase tracking-tight mb-4">Send Dispatch</h2>
+              <p className="text-gray-500 uppercase tracking-widest text-xs font-bold">Inquiry Response Window: 12-24 Hours</p>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Name
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Icon icon={FaUser} size={16} className="text-[#351c15] dark:text-[#ffbe03]" />
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><Icon icon={FaUser} /></span>
                   <input
                     type="text"
-                    id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="Your name"
-                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                      isDarkMode 
-                        ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400' 
-                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                    } focus:outline-none focus:ring-2 focus:ring-[#ffbe03] dark:focus:ring-[#ffbe03] transition-all duration-300`}
+                    placeholder="FULL NAME"
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-b-2 border-gray-200 focus:border-eazypost-red focus:outline-none font-bold uppercase text-sm tracking-wide transition-colors"
                   />
                 </div>
-              </div>
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Icon icon={FaEnvelope} size={16} className="text-[#351c15] dark:text-[#ffbe03]" />
-                  </div>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><Icon icon={FaEnvelope} /></span>
                   <input
                     type="email"
-                    id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Your email"
-                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                      isDarkMode 
-                        ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400' 
-                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                    } focus:outline-none focus:ring-2 focus:ring-[#ffbe03] dark:focus:ring-[#ffbe03] transition-all duration-300`}
+                    placeholder="EMAIL ADDRESS"
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-b-2 border-gray-200 focus:border-eazypost-red focus:outline-none font-bold uppercase text-sm tracking-wide transition-colors"
                   />
                 </div>
               </div>
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  placeholder="How can we help?"
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    isDarkMode 
-                      ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400' 
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  } focus:outline-none focus:ring-2 focus:ring-[#ffbe03] dark:focus:ring-[#ffbe03] transition-all duration-300`}
-                />
-              </div>
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={4}
-                  value={formData.message}
-                  onChange={handleChange}
-                  placeholder="Your message"
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    isDarkMode 
-                      ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400' 
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  } focus:outline-none focus:ring-2 focus:ring-[#ffbe03] dark:focus:ring-[#ffbe03] transition-all duration-300`}
-                />
-              </div>
+              <input
+                type="text"
+                name="subject"
+                value={formData.subject}
+                onChange={handleChange}
+                placeholder="SUBJECT / MANIFEST NUMBER"
+                className="w-full px-4 py-4 bg-gray-50 border-b-2 border-gray-200 focus:border-eazypost-red focus:outline-none font-bold uppercase text-sm tracking-wide transition-colors"
+              />
+              <textarea
+                name="message"
+                rows={6}
+                value={formData.message}
+                onChange={handleChange}
+                placeholder="DETAILED INQUIRY"
+                className="w-full px-4 py-4 bg-gray-50 border-b-2 border-gray-200 focus:border-eazypost-red focus:outline-none font-bold uppercase text-sm tracking-wide transition-colors resize-none"
+              />
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md ${
-                  isDarkMode 
-                    ? 'text-gray-900 bg-[#ffbe03] hover:bg-[#e6a902]' 
-                    : 'text-white bg-[#351c15] hover:bg-[#4a2a1f]'
-                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffbe03] disabled:opacity-50 transition-all duration-300 transform hover:scale-105`}
+                className="w-full flex items-center justify-center px-10 py-5 bg-eazypost-blue text-white font-black uppercase tracking-widest text-sm hover:bg-eazypost-red transition-all shadow-xl disabled:opacity-70 group"
               >
                 {loading ? (
-                  <FaSpinner className="animate-spin mr-2" />
+                  <Icon icon={FaSpinner} className="animate-spin mr-3 text-xl" />
                 ) : (
-                  <FaPaperPlane className="mr-2" />
+                  <Icon icon={FaPaperPlane} className="mr-3 group-hover:translate-x-2 transition-transform" />
                 )}
-                Send Message
+                Initialize Communication
               </button>
             </form>
           </div>
 
-          {/* Contact Information and Image */}
-          <div className="space-y-8">
-            {/* Contact Information Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Contact Information</h3>
-              <div className="space-y-6">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <Icon icon={FaEnvelope} size={24} className="text-[#ffbe03]" />
+          {/* Contact Information */}
+          <div className="space-y-12">
+            <div>
+              <h2 className="text-3xl font-black text-eazypost-blue uppercase tracking-tight mb-8">GLOBAL CONTACTS</h2>
+              <div className="space-y-8">
+                <AnimatedCard animation="fade">
+                  <div className="flex items-start gap-6 group">
+                    <div className="flex-shrink-0 w-12 h-12 bg-gray-50 border border-gray-100 flex items-center justify-center text-eazypost-red group-hover:bg-eazypost-blue group-hover:text-white transition-all">
+                      <Icon icon={FaEnvelope} className="text-xl" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-eazypost-blue uppercase tracking-widest text-xs mb-1">Electronic Mail</h4>
+                      <p className="text-lg font-bold text-gray-700">support@eazypost.com</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-base font-medium text-gray-900 dark:text-white">Email</p>
-                    <p className="mt-1 text-base text-gray-500 dark:text-gray-400">
-                      globaltrackteam@gmail.com
-                    </p>
+                </AnimatedCard>
+
+                <AnimatedCard animation="fade" delay="100ms">
+                  <div className="flex items-start gap-6 group">
+                    <div className="flex-shrink-0 w-12 h-12 bg-gray-50 border border-gray-100 flex items-center justify-center text-eazypost-red group-hover:bg-eazypost-blue group-hover:text-white transition-all">
+                      <Icon icon={FaHeadset} className="text-xl" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-eazypost-blue uppercase tracking-widest text-xs mb-1">Global Support</h4>
+                      <p className="text-lg font-bold text-gray-700">Available 24/7 via Portal</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <Icon icon={FaClock} size={24} className="text-[#ffbe03]" />
+                </AnimatedCard>
+
+                <AnimatedCard animation="fade" delay="200ms">
+                  <div className="flex items-start gap-6 group">
+                    <div className="flex-shrink-0 w-12 h-12 bg-gray-50 border border-gray-100 flex items-center justify-center text-eazypost-red group-hover:bg-eazypost-blue group-hover:text-white transition-all">
+                      <Icon icon={FaClock} className="text-xl" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-eazypost-blue uppercase tracking-widest text-xs mb-1">Main Headquarters</h4>
+                      <p className="text-gray-600 font-bold text-sm">MON - FRI: 08:00 - 20:00 GMT</p>
+                      <p className="text-gray-600 font-bold text-sm">SAT: 09:00 - 15:00 GMT</p>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-base font-medium text-gray-900 dark:text-white">Business Hours</p>
-                    <p className="mt-1 text-base text-gray-500 dark:text-gray-400">
-                      Monday - Friday: 9:00 AM - 6:00 PM<br />
-                      Saturday: 9:00 AM - 1:00 PM<br />
-                      Sunday: Closed
-                    </p>
-                  </div>
-                </div>
+                </AnimatedCard>
               </div>
             </div>
 
-            {/* Contact Image */}
-            <div className="relative rounded-xl overflow-hidden shadow-lg">
+            {/* Visual Callout */}
+            <div className="relative group overflow-hidden bg-eazypost-blue">
               <img
-                src="https://images.unsplash.com/photo-1552581234-26160f608093?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-                alt="Customer service team"
-                className="w-full h-[300px] object-cover"
+                src="https://images.unsplash.com/photo-1577412647305-991150c7d163?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                alt="Logistics Operations"
+                className="w-full h-[300px] object-cover opacity-50 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
               />
+              <div className="absolute inset-0 flex items-center justify-center p-8 text-center text-white bg-gradient-to-t from-eazypost-blue to-transparent">
+                <div>
+                  <Icon icon={FaMapMarkerAlt} className="text-4xl text-eazypost-red mx-auto mb-4" />
+                  <p className="font-black uppercase tracking-[0.3em] text-xs">Global Hub Network</p>
+                  <p className="mt-2 text-sm text-gray-300 font-medium">Over 2,500 strategic logistics points worldwide</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -222,4 +192,4 @@ const Contact: React.FC = () => {
   );
 };
 
-export default Contact; 
+export default Contact;

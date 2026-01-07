@@ -1,106 +1,76 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
 
 const Privacy: React.FC = () => {
-  const { isDarkMode } = useTheme();
-
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative bg-[#351c15] dark:bg-[#1a0e0a] py-12">
-        <div className="absolute inset-0">
+      <div className="relative bg-eazypost-blue py-16 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
           <img
             src="https://images.unsplash.com/photo-1507925921958-8a62f3d1a50d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
             alt="Privacy"
-            className="w-full h-full object-cover opacity-30 dark:opacity-20"
+            className="w-full h-full object-cover"
           />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Privacy Policy
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+          <h1 className="text-4xl font-black uppercase tracking-tight sm:text-5xl">
+            Privacy <span className="text-eazypost-red">Policy</span>
           </h1>
-          <p className="mt-6 text-xl text-gray-300 dark:text-gray-200 max-w-3xl mx-auto">
-            Your privacy is important to us. Learn how we collect, use, and protect your information.
+          <div className="w-20 h-1 bg-eazypost-red mx-auto mt-6"></div>
+          <p className="mt-8 text-xl text-gray-200 max-w-3xl mx-auto">
+            Ensuring the highest standards of data protection and client confidentiality.
           </p>
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6 md:p-8`}>
-          <div className="prose max-w-none">
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>Information We Collect</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              We collect information that you provide directly to us, including:
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="prose prose-lg max-w-none">
+          <section className="mb-12">
+            <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-6 border-l-4 border-eazypost-red pl-4">Data Collection</h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              At EazyPost LLC, we secure vital information required to facilitate global logistics:
             </p>
-            <ul className={`list-disc pl-6 mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              <li>Name and contact information</li>
-              <li>Shipping and billing addresses</li>
-              <li>Payment information</li>
-              <li>Tracking and delivery preferences</li>
-              <li>Communication history</li>
+            <ul className="space-y-2 text-gray-700">
+              <li className="flex items-center font-medium"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Full legal contact identification</li>
+              <li className="flex items-center font-medium"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Precise geo-spatial shipping coordinates</li>
+              <li className="flex items-center font-medium"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Secure transactional data protocols</li>
+              <li className="flex items-center font-medium"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Shipment manifest history</li>
             </ul>
+          </section>
 
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>How We Use Your Information</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              We use the information we collect to:
+          <section className="mb-12">
+            <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-6 border-l-4 border-eazypost-red pl-4">Operational Usage</h2>
+            <p className="text-gray-700 leading-relaxed">
+              Your data is utilized strictly for the execution of logistics services, route optimization, customs compliance, and real-time security monitoring. EazyPost LLC does not sell client data to third-party marketing entities.
             </p>
-            <ul className={`list-disc pl-6 mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              <li>Process and track your shipments</li>
-              <li>Communicate with you about your deliveries</li>
-              <li>Improve our services</li>
-              <li>Send you important updates and notifications</li>
-              <li>Comply with legal obligations</li>
-            </ul>
+          </section>
 
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>Information Sharing</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              We may share your information with:
+          <section className="mb-12">
+            <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-6 border-l-4 border-eazypost-red pl-4">Global Security Protocol</h2>
+            <p className="text-gray-700 leading-relaxed">
+              We employ enterprise-grade encryption for all data-at-rest and data-in-transit. Our servers are monitored 24/7 to prevent unauthorized access and ensure total operational continuity.
             </p>
-            <ul className={`list-disc pl-6 mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              <li>Shipping partners and carriers</li>
-              <li>Payment processors</li>
-              <li>Service providers who assist our operations</li>
-              <li>Law enforcement when required by law</li>
-            </ul>
+          </section>
 
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>Data Security</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.
+          <section className="mb-12">
+            <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-6 border-l-4 border-eazypost-red pl-4">Client Rights</h2>
+            <p className="text-gray-700 leading-relaxed">
+              You retain the right to audit your personal data held by EazyPost LLC, request corrections, or mandate the deletion of non-essential records in accordance with GDPR and international privacy standards.
             </p>
+          </section>
 
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>Your Rights</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              You have the right to:
+          <div className="mt-16 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-sm font-bold uppercase tracking-widest text-gray-400">
+              Official Policy 2026
             </p>
-            <ul className={`list-disc pl-6 mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              <li>Access your personal information</li>
-              <li>Correct inaccurate information</li>
-              <li>Request deletion of your information</li>
-              <li>Opt-out of marketing communications</li>
-              <li>Lodge a complaint with supervisory authorities</li>
-            </ul>
-
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>Cookies and Tracking</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              We use cookies and similar tracking technologies to improve your experience on our website. You can control cookie settings through your browser preferences.
-            </p>
-
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>Contact Us</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              If you have questions about our Privacy Policy, please{' '}
-              <Link to="/contact" className={`${isDarkMode ? 'text-[#ffbe03] hover:text-[#e6a902]' : 'text-[#351c15] hover:text-[#4a2a1f]'}`}>
-                contact us
-              </Link>
-              .
-            </p>
-
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
-              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Last updated: {new Date().toLocaleDateString()}
-              </p>
-            </div>
+            <Link
+              to="/contact"
+              className="px-8 py-3 bg-white text-eazypost-blue font-black uppercase text-xs tracking-widest border-2 border-eazypost-blue hover:bg-eazypost-blue hover:text-white transition-all shadow-lg"
+            >
+              Privacy Officer
+            </Link>
           </div>
         </div>
       </div>
@@ -108,4 +78,4 @@ const Privacy: React.FC = () => {
   );
 };
 
-export default Privacy; 
+export default Privacy;

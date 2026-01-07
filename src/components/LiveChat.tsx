@@ -17,19 +17,19 @@ declare global {
 const LiveChat: React.FC = () => {
   // Welcome message options
   const welcomeMessages = React.useMemo(() => [
-    "Hello! 👋 Welcome to Global Track! I'm here to help you with your shipment tracking, delivery questions, or any other inquiries. How can I assist you today?",
-    "Hi there! 🚚 Welcome to Global Track! Need help tracking your shipment or have questions about delivery? I'm here to help!",
-    "Welcome to Global Track! 📦 I'm your shipping assistant. I can help you track packages, check delivery status, or answer any shipping questions. What can I help you with?",
-    "Hello! 🎉 Thanks for visiting Global Track! I'm here to make your shipping experience smooth and easy. How can I assist you today?"
+    "Hello! 👋 Welcome to EazyPost LLC! I'm here to help you with your manifest tracking, logistics questions, or any other inquiries. How can I assist you today?",
+    "Hi there! 🚚 Welcome to EazyPost LLC Support Terminal. Need help locating your consignment or have questions about routing? I'm here to assist!",
+    "Welcome to the EazyPost LLC Global Operations Center! 📦 I can help you track manifests, check delivery status, or answer any industrial logic questions. How can I help?",
+    "Hello! 🎉 Thanks for choosing EazyPost LLC! I'm here to ensure your logistics experience is frictionless. How can I assist you today?"
   ], []);
 
   // Suggested quick reply buttons
   const quickReplies = React.useMemo(() => [
-    "Track My Package",
-    "Check Delivery Status", 
-    "Shipping Rates",
-    "File a Claim",
-    "Contact Support"
+    "Track Manifest",
+    "Check Consignment Status",
+    "Logistics Specs",
+    "Report Discrepancy",
+    "Contact Operations"
   ], []);
 
   // Get random welcome message
@@ -65,21 +65,21 @@ const LiveChat: React.FC = () => {
     script.src = 'https://embed.tawk.to/68b823c181805619277a1df5/1j47knbl1';
     script.charset = 'UTF-8';
     script.setAttribute('crossorigin', '*');
-    
+
     script.onload = () => {
       // Wait a bit for Tawk_API to be available
       setTimeout(() => {
         if (window.Tawk_API) {
           // Set welcome message
-          window.Tawk_API.onLoad = function() {
+          window.Tawk_API.onLoad = function () {
             try {
               // Set visitor attributes
               window.Tawk_API?.setAttributes({
-                'name': 'Global Track Customer',
+                'name': 'EazyPost LLC Client',
                 'email': '',
                 'role': 'customer'
               });
-              
+
               // Send welcome message with slight delay for better UX
               setTimeout(() => {
                 window.Tawk_API?.sendMessage(getRandomWelcomeMessage());
@@ -93,11 +93,11 @@ const LiveChat: React.FC = () => {
         }
       }, 1000);
     };
-    
+
     script.onerror = (error) => {
       console.error('Failed to load Tawk.to script:', error);
     };
-    
+
     document.head.appendChild(script);
 
     // Cleanup function

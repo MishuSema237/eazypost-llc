@@ -1,220 +1,110 @@
-import { v4 as uuidv4 } from 'uuid';
-import { sendShipperEmail, sendReceiverEmail } from './emailService';
-import {
-  collection,
-  addDoc,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  enableIndexedDbPersistence,
-  enableMultiTabIndexedDbPersistence
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { Shipment, ShipmentHistory, ShipmentPackage } from '../types/shipment';
 
-// Enable offline persistence
-try {
-  enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      // Multiple tabs open, persistence can only be enabled in one tab at a time.
-      enableMultiTabIndexedDbPersistence(db);
-    }
-  });
-} catch (err) {
-  // Handle initialization errors
-}
+const API_BASE = process.env.REACT_APP_API_URL || '';
+const API_URL = `${API_BASE}/api/shipments`;
 
-export interface ShipmentPackage {
-  quantity: number;
-  pieceType: string;
-  description: string;
-  length: number;
-  width: number;
-  height: number;
-  weight: number;
-}
+export type { Shipment, ShipmentHistory, ShipmentPackage };
 
-export interface ShipmentHistory {
-  date: string;
-  time: string;
-  location: string;
-  status: string;
-  updatedBy: string;
-  remarks: string;
-}
-
-export interface Shipment {
-  id: string;
-  trackingNumber: string;
-  
-  // Shipper Information
-  shipperName: string;
-  shipperAddress: string;
-  shipperPhone: string;
-  shipperEmail: string;
-  
-  // Receiver Information
-  receiverName: string;
-  receiverAddress: string;
-  receiverPhone: string;
-  receiverEmail: string;
-  
-  // Shipment Status
-  status: 'pending' | 'in_transit' | 'on_hold' | 'delivered' | 'delayed';
-  currentLocation: string;
-  
-  // Shipment Information
-  origin: string;
-  destination: string;
-  carrier: string;
-  typeOfShipment: string;
-  shipmentMode: string;
-  packageCount: number;
-  product: string;
-  productQuantity: number;
-  paymentMode: string;
-  totalFreight: number;
-  weight: number;
-  
-  // Dates and Times
-  expectedDeliveryDate: string;
-  departureTime: string;
-  pickupDate: string;
-  pickupTime: string;
-  
-  // Package Details
-  packages: ShipmentPackage[];
-  totalVolumetricWeight: number;
-  totalVolume: number;
-  totalActualWeight: number;
-  
-  // History
-  shipmentHistory: ShipmentHistory[];
-  
-  // Comments
-  comments: string;
-  
-  // System fields
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Generate tracking number
+// Generate manifest number
 const generateTrackingNumber = () => {
-  const prefix = 'PSE';
+  const prefix = 'EP';
   const randomNum = Math.floor(Math.random() * 1000000000).toString().padStart(9, '0');
   return `${prefix}${randomNum}`;
 };
 
-// Create a new shipment
-export const createShipment = async (data: Omit<Shipment, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>): Promise<Shipment> => {
+// Create a new shipment manifest
+export const createShipment = async (data: Omit<Shipment, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt' | 'shipmentHistory'>): Promise<Shipment> => {
   try {
-    const now = new Date().toISOString();
-    const newShipment: Omit<Shipment, 'id'> = {
-      ...data,
-      trackingNumber: generateTrackingNumber(),
-      createdAt: now,
-      updatedAt: now
-    };
-    
-    const docRef = await addDoc(collection(db, 'shipments'), newShipment);
-    const createdShipment = { id: docRef.id, ...newShipment };
-    
-    // Try to send notification emails
-    try {
-      await Promise.all([
-        sendShipperEmail(createdShipment),
-        sendReceiverEmail(createdShipment)
-      ]);
-    } catch {
-      // Silently handle email errors
-    }
-    
-    return createdShipment;
+    const trackingNumber = generateTrackingNumber();
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...data,
+        trackingNumber,
+        shipmentHistory: [{
+          date: new Date().toISOString().split('T')[0],
+          time: new Date().toLocaleTimeString(),
+          location: data.origin,
+          status: data.status,
+          updatedBy: 'admin',
+          remarks: 'Manifest initialized and logged in global system.'
+        }]
+      }),
+    });
+
+    if (!response.ok) throw new Error('Failed to create manifest');
+    return await response.json();
   } catch (error) {
-    throw new Error('Unable to create shipment. Please check your connection and try again.');
+    throw new Error('Logistics server connection failed. Manifest not logged.');
   }
 };
 
-// Get all shipments
+// Get all shipment manifests
 export const getAllShipments = async (): Promise<Shipment[]> => {
   try {
-    const querySnapshot = await getDocs(collection(db, 'shipments'));
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Shipment[];
+    const response = await fetch(API_URL);
+    if (!response.ok) return [];
+    return await response.json();
   } catch (error) {
-    return []; // Return empty array when offline or error occurs
+    return [];
   }
 };
 
-// Get shipment by tracking number
+// Get manifest by tracking number
 export const getShipmentByTracking = async (trackingNumber: string): Promise<Shipment | null> => {
   try {
-    const shipmentsRef = collection(db, 'shipments');
-    const q = query(shipmentsRef, where('trackingNumber', '==', trackingNumber));
-    const querySnapshot = await getDocs(q);
-    
-    if (querySnapshot.empty) {
-      return null;
+    const response = await fetch(`${API_URL}/track/${trackingNumber}`);
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      throw new Error('Server error');
     }
-    
-    const doc = querySnapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as Shipment;
+    return await response.json();
   } catch (error) {
-    throw new Error('Unable to fetch shipment. Please check your connection and try again.');
+    throw new Error('Manifest retrieval failed. Check network link.');
   }
 };
 
-// Get shipment by ID
+// Get manifest by ID
 export const getShipmentById = async (id: string): Promise<Shipment | null> => {
   try {
-    const docRef = doc(db, 'shipments', id);
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) return null;
-    return { id: docSnap.id, ...docSnap.data() } as Shipment;
+    const response = await fetch(`${API_URL}/${id}`);
+    if (!response.ok) return null;
+    return await response.json();
   } catch (error) {
-    throw new Error('Unable to fetch shipment. Please check your connection and try again.');
+    throw new Error('Manifest retrieval failed.');
   }
 };
 
-// Update shipment
-export const updateShipment = async (id: string, data: Partial<Omit<Shipment, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt'>>): Promise<Shipment> => {
+// Update manifest
+export const updateShipment = async (id: string, data: Partial<Shipment>): Promise<Shipment> => {
   try {
-    const docRef = doc(db, 'shipments', id);
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) throw new Error('Shipment not found');
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
 
-    const updatedData = {
-      ...data,
-      updatedAt: new Date().toISOString()
-    };
-
-    await updateDoc(docRef, updatedData);
-    return { id, ...docSnap.data(), ...updatedData } as Shipment;
+    if (!response.ok) throw new Error('Update failed');
+    return await response.json();
   } catch (error) {
-    throw new Error('Unable to update shipment. Please check your connection and try again.');
+    throw new Error('Logistics update failed. Server unreachable.');
   }
 };
 
-// Delete shipment
+// Delete manifest
 export const deleteShipment = async (id: string): Promise<void> => {
   try {
-    const docRef = doc(db, 'shipments', id);
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) throw new Error('Shipment not found');
-    
-    await deleteDoc(docRef);
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Deletion failed');
   } catch (error) {
-    throw new Error('Unable to delete shipment. Please check your connection and try again.');
+    throw new Error('Manifest deletion failed.');
   }
 };
 
-// Update tracking info
+// Update tracking trajectory
 export const updateTrackingInfo = async (
   id: string,
   status: string,
@@ -222,9 +112,6 @@ export const updateTrackingInfo = async (
   remarks?: string
 ): Promise<Shipment> => {
   try {
-    const shipment = await getShipmentById(id);
-    if (!shipment) throw new Error('Shipment not found');
-
     const now = new Date();
     const historyEntry = {
       date: now.toISOString().split('T')[0],
@@ -232,24 +119,22 @@ export const updateTrackingInfo = async (
       location: currentLocation,
       status: status,
       updatedBy: 'admin',
-      remarks: remarks || ''
+      remarks: remarks || 'Location update logged.'
     };
 
-    const updatedData = {
-      status: status as Shipment['status'],
-      currentLocation,
-      shipmentHistory: [...shipment.shipmentHistory, historyEntry],
-      updatedAt: now.toISOString()
-    };
+    const response = await fetch(`${API_URL}/${id}/tracking`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status,
+        currentLocation,
+        historyEntry
+      }),
+    });
 
-    const docRef = doc(db, 'shipments', id);
-    await updateDoc(docRef, updatedData);
-    
-    return {
-      ...shipment,
-      ...updatedData
-    };
+    if (!response.ok) throw new Error('Tracking update failed');
+    return await response.json();
   } catch (error) {
-    throw new Error('Unable to update tracking info. Please check your connection and try again.');
+    throw new Error('Tracking synchronization failed.');
   }
-}; 
+};

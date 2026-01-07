@@ -1,116 +1,89 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
 
 const Terms: React.FC = () => {
-  const { isDarkMode } = useTheme();
-
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative bg-[#351c15] dark:bg-[#1a0e0a] py-12">
-        <div className="absolute inset-0">
+      <div className="relative bg-eazypost-blue py-16 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
           <img
             src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
             alt="Terms and Conditions"
-            className="w-full h-full object-cover opacity-30 dark:opacity-20"
+            className="w-full h-full object-cover"
           />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Terms & Conditions
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+          <h1 className="text-4xl font-black uppercase tracking-tight sm:text-5xl">
+            Terms & <span className="text-eazypost-red">Conditions</span>
           </h1>
-          <p className="mt-6 text-xl text-gray-300 dark:text-gray-200 max-w-3xl mx-auto">
-            Please read these terms carefully before using our services.
+          <div className="w-20 h-1 bg-eazypost-red mx-auto mt-6"></div>
+          <p className="mt-8 text-xl text-gray-200 max-w-3xl mx-auto">
+            Professional service guidelines and legal framework for EazyPost LLC operations.
           </p>
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-6 md:p-8`}>
-          <div className="prose max-w-none">
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>1. Acceptance of Terms</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              By accessing and using our services, you agree to be bound by these Terms and Conditions, our Privacy Policy, and any other policies referenced herein.
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="prose prose-lg max-w-none">
+          <section className="mb-12">
+            <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-6 border-l-4 border-eazypost-red pl-4">1. Acceptance of Terms</h2>
+            <p className="text-gray-700 leading-relaxed">
+              By accessing and using EazyPost LLC services, you agree to be bound by these Terms and Conditions, our Privacy Policy, and all applicable international trade regulations.
             </p>
+          </section>
 
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>2. Service Description</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              We provide shipping, tracking, and logistics services. Our services include:
+          <section className="mb-12">
+            <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-6 border-l-4 border-eazypost-red pl-4">2. Service Scope</h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              EazyPost LLC provides high-level logistics and courier solutions including:
             </p>
-            <ul className={`list-disc pl-6 mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              <li>Package tracking and monitoring</li>
-              <li>Domestic and international shipping</li>
-              <li>Logistics solutions</li>
-              <li>Warehousing services</li>
-              <li>Customer support</li>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-center"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Precision tracking and cargo monitoring</li>
+              <li className="flex items-center"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Multi-modal international shipping (Air, Sea, Ground)</li>
+              <li className="flex items-center"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Secure industrial warehousing</li>
+              <li className="flex items-center"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Customs brokerage and documentation</li>
             </ul>
+          </section>
 
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>3. User Responsibilities</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              When using our services, you agree to:
+          <section className="mb-12">
+            <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-6 border-l-4 border-eazypost-red pl-4">3. Client Obligations</h2>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              All clients and partners using EazyPost LLC infrastructure must:
             </p>
-            <ul className={`list-disc pl-6 mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              <li>Provide accurate and complete information</li>
-              <li>Comply with all applicable laws and regulations</li>
-              <li>Maintain the security of your account credentials</li>
-              <li>Not misuse or abuse our services</li>
-              <li>Pay all fees and charges in a timely manner</li>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-center"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Disclose accurate manifest information</li>
+              <li className="flex items-center"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Adhere to dangerous goods safety declarations</li>
+              <li className="flex items-center"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Maintain compliance with destination country laws</li>
+              <li className="flex items-center"><span className="w-2 h-2 bg-eazypost-red mr-3"></span> Settle all service invoices within agreed timeframes</li>
             </ul>
+          </section>
 
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>4. Shipping Policies</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              Our shipping services are subject to:
+          <section className="mb-12">
+            <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-6 border-l-4 border-eazypost-red pl-4">4. Liability & Insurance</h2>
+            <p className="text-gray-700 leading-relaxed">
+              Standard liability is governed by international conventions (Montreal/Warsaw). EazyPost LLC provides secondary cargo insurance options for high-value assets. We are not liable for delays caused by government intervention or force majeure events.
             </p>
-            <ul className={`list-disc pl-6 mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              <li>Applicable shipping rates and fees</li>
-              <li>Delivery time estimates</li>
-              <li>Package size and weight restrictions</li>
-              <li>Prohibited items policies</li>
-              <li>International shipping regulations</li>
-            </ul>
+          </section>
 
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>5. Liability</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              Our liability is limited to the extent permitted by law. We are not responsible for:
+          <section className="mb-12">
+            <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-6 border-l-4 border-eazypost-red pl-4">5. Modifications</h2>
+            <p className="text-gray-700 leading-relaxed">
+              EazyPost LLC reserves the right to adjust service rates and terms to reflect market volatility or regulatory changes. Continued usage of the platform confirms acceptance of revised terms.
             </p>
-            <ul className={`list-disc pl-6 mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              <li>Delays due to customs or regulatory holds</li>
-              <li>Force majeure events</li>
-              <li>Incorrect information provided by users</li>
-              <li>Third-party service failures</li>
-            </ul>
+          </section>
 
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>6. Intellectual Property</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              All content, trademarks, and intellectual property on our platform are owned by us or our licensors and are protected by applicable laws.
+          <div className="mt-16 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-sm font-bold uppercase tracking-widest text-gray-400">
+              Last Updated: January 2026
             </p>
-
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>7. Termination</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              We reserve the right to terminate or suspend services to any user who violates these terms or engages in fraudulent activity.
-            </p>
-
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>8. Modifications</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              We may modify these terms at any time. Continued use of our services after changes constitutes acceptance of the modified terms.
-            </p>
-
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-gray-900'} mb-4`}>9. Contact Information</h2>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              For questions about these Terms & Conditions, please{' '}
-              <Link to="/contact" className={`${isDarkMode ? 'text-[#ffbe03] hover:text-[#e6a902]' : 'text-[#351c15] hover:text-[#4a2a1f]'}`}>
-                contact us
-              </Link>
-              .
-            </p>
-
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
-              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Last updated: {new Date().toLocaleDateString()}
-              </p>
-            </div>
+            <Link
+              to="/contact"
+              className="px-8 py-3 bg-eazypost-blue text-white font-black uppercase text-xs tracking-widest border-b-4 border-eazypost-red hover:translate-y-[-2px] transition-all"
+            >
+              Legal Inquiry
+            </Link>
           </div>
         </div>
       </div>
@@ -118,4 +91,4 @@ const Terms: React.FC = () => {
   );
 };
 
-export default Terms; 
+export default Terms;

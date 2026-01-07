@@ -6,6 +6,14 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
+      colors: {
+        'eazypost': {
+          'blue': '#002855', // Deep blue
+          'red': '#D52B1E',  // Professional red
+          'white': '#FFFFFF',
+          'dark': '#001A35',
+        }
+      },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },

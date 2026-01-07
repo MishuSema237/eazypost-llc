@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Shipment } from '../services/shipmentService';
 import { geocodeMultipleAddresses, GeocodingResult } from '../services/geocodingService';
 import { FaMapMarkerAlt, FaSpinner } from 'react-icons/fa';
+import Icon from './icons/Icon';
 import LiveMap from './LiveMap';
 
 interface ShipmentMapProps {
@@ -9,7 +10,7 @@ interface ShipmentMapProps {
   isDarkMode: boolean;
 }
 
-const ShipmentMap: React.FC<ShipmentMapProps> = ({ shipment, isDarkMode }) => {
+const ShipmentMap: React.FC<ShipmentMapProps> = ({ shipment }) => {
   const [geocodedLocations, setGeocodedLocations] = useState<{
     origin: GeocodingResult | null;
     current: GeocodingResult | null;
@@ -33,18 +34,18 @@ const ShipmentMap: React.FC<ShipmentMapProps> = ({ shipment, isDarkMode }) => {
       }
 
       const results = await geocodeMultipleAddresses(addresses);
-      
+
       const locationMap = {
         origin: results[0] || null,
         destination: results[1] || null,
-        current: shipment.currentLocation && shipment.currentLocation !== shipment.origin 
+        current: shipment.currentLocation && shipment.currentLocation !== shipment.origin
           ? (results[2] || null)
           : null
       };
 
       setGeocodedLocations(locationMap);
     } catch (err) {
-      setError('Failed to load map locations. Please try again.');
+      setError('Logistics geodata unavailable. Interface standby.');
     } finally {
       setIsLoading(false);
     }
@@ -73,53 +74,22 @@ const ShipmentMap: React.FC<ShipmentMapProps> = ({ shipment, isDarkMode }) => {
 
   if (isLoading) {
     return (
-      <div className={`rounded-lg p-6 ${isDarkMode ? 'bg-slate-800' : 'bg-white'} shadow-md`}>
-        <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-          Shipment Map
-        </h2>
-        <div className="flex items-center justify-center h-64">
-          <div className="flex items-center gap-3">
-            <FaSpinner className="animate-spin text-2xl text-blue-500" />
-            <span className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Loading map...
-            </span>
-          </div>
+      <div className="bg-white p-8 border-b-4 border-eazypost-blue h-full">
+        <div className="flex flex-col items-center justify-center h-full gap-4">
+          <Icon icon={FaSpinner} className="animate-spin text-4xl text-eazypost-blue" />
+          <span className="text-xs font-black uppercase tracking-widest text-gray-400">Synchronizing Geodata...</span>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || (!geocodedLocations.origin && !geocodedLocations.destination)) {
     return (
-      <div className={`rounded-lg p-6 ${isDarkMode ? 'bg-slate-800' : 'bg-white'} shadow-md`}>
-        <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-          Shipment Map
-        </h2>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <FaMapMarkerAlt className="text-4xl text-red-500 mx-auto mb-2" />
-            <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              {error}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!geocodedLocations.origin && !geocodedLocations.destination) {
-    return (
-      <div className={`rounded-lg p-6 ${isDarkMode ? 'bg-slate-800' : 'bg-white'} shadow-md`}>
-        <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-          Shipment Map
-        </h2>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <FaMapMarkerAlt className="text-4xl text-gray-400 mx-auto mb-2" />
-            <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Map data unavailable
-            </p>
-          </div>
+      <div className="bg-white p-8 border-b-4 border-eazypost-red h-full">
+        <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+          <Icon icon={FaMapMarkerAlt} className="text-4xl text-eazypost-red" />
+          <span className="text-xs font-black uppercase tracking-widest text-gray-400">Map Terminal Offline</span>
+          <p className="text-[10px] font-bold text-gray-300 uppercase max-w-[200px]">Unable to lock locational data for this manifest.</p>
         </div>
       </div>
     );
@@ -128,97 +98,49 @@ const ShipmentMap: React.FC<ShipmentMapProps> = ({ shipment, isDarkMode }) => {
   const mapCenter = getMapCenter();
 
   return (
-    <div className={`rounded-lg p-6 ${isDarkMode ? 'bg-slate-800' : 'bg-white'} shadow-md`}>
-      <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-        Shipment Route Map
-      </h2>
-      
-      <div className="relative">
-        <LiveMap
-          center={mapCenter}
-          zoom={6}
-          height="400px"
-          showMarker={false}
-          showResetButton={true}
-          origin={geocodedLocations.origin ? {
-            lat: geocodedLocations.origin.coordinates.lat,
-            lng: geocodedLocations.origin.coordinates.lng,
-            title: geocodedLocations.origin.formattedAddress
-          } : undefined}
-          destination={geocodedLocations.destination ? {
-            lat: geocodedLocations.destination.coordinates.lat,
-            lng: geocodedLocations.destination.coordinates.lng,
-            title: geocodedLocations.destination.formattedAddress
-          } : undefined}
-          currentLocation={geocodedLocations.current ? {
-            lat: geocodedLocations.current.coordinates.lat,
-            lng: geocodedLocations.current.coordinates.lng,
-            title: geocodedLocations.current.formattedAddress
-          } : undefined}
-          showRoute={true}
-          routeColor={isDarkMode ? '#8b5cf6' : '#5928b1'}
-          completedRouteColor={isDarkMode ? '#10b981' : '#059669'}
-          className="rounded-lg"
-        />
-        
-        <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          <div className="text-center p-4">
-            <FaMapMarkerAlt className="text-4xl text-gray-400 mx-auto mb-2" />
-            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Interactive map loading...
-            </p>
-          </div>
-        </div>
+    <div className="bg-white group h-full relative border-l-8 border-eazypost-blue shadow-inner overflow-hidden">
+      <LiveMap
+        center={mapCenter}
+        zoom={6}
+        height="100%"
+        showMarker={false}
+        showResetButton={true}
+        origin={geocodedLocations.origin ? {
+          lat: geocodedLocations.origin.coordinates.lat,
+          lng: geocodedLocations.origin.coordinates.lng,
+          title: geocodedLocations.origin.formattedAddress
+        } : undefined}
+        destination={geocodedLocations.destination ? {
+          lat: geocodedLocations.destination.coordinates.lat,
+          lng: geocodedLocations.destination.coordinates.lng,
+          title: geocodedLocations.destination.formattedAddress
+        } : undefined}
+        currentLocation={geocodedLocations.current ? {
+          lat: geocodedLocations.current.coordinates.lat,
+          lng: geocodedLocations.current.coordinates.lng,
+          title: geocodedLocations.current.formattedAddress
+        } : undefined}
+        showRoute={true}
+        routeColor="#002855"
+        completedRouteColor="#D52B1E"
+        className="transition-all duration-700"
+      />
+
+      {/* Overlay Status */}
+      <div className="absolute top-4 left-4 bg-eazypost-blue text-white p-4 shadow-2xl pointer-events-none">
+        <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1">Operational Map</div>
+        <div className="text-xs font-bold text-gray-300">Live Manifest Positioning System</div>
       </div>
-      
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-200'}`}>
-          <h3 className={`font-semibold text-sm mb-1 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
-            Origin
-          </h3>
-          <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            {geocodedLocations.origin?.formattedAddress || shipment.origin}
-          </p>
-        </div>
-        
-        {geocodedLocations.current && geocodedLocations.current !== geocodedLocations.origin && (
-          <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-200'}`}>
-            <h3 className={`font-semibold text-sm mb-1 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-              Current Location
-            </h3>
-            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              {geocodedLocations.current.formattedAddress}
-            </p>
-          </div>
-        )}
-        
-        <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-200'}`}>
-          <h3 className={`font-semibold text-sm mb-1 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
-            Destination
-          </h3>
-          <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            {geocodedLocations.destination?.formattedAddress || shipment.destination}
-          </p>
-        </div>
-      </div>
-      
-      <div className="mt-4 text-center">
+
+      <div className="absolute bottom-4 right-4 flex gap-2">
         <a
           href={`https://www.google.com/maps/dir/${encodeURIComponent(shipment.origin)}/${encodeURIComponent(shipment.destination)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-            isDarkMode
-              ? 'bg-purple-600 text-white hover:bg-blue-600'
-              : 'bg-blue-600 text-white hover:bg-purple-600'
-          }`}
+          className="px-4 py-2 bg-eazypost-red text-white text-[10px] font-black uppercase tracking-widest hover:bg-eazypost-blue transition-all shadow-xl"
         >
-          <FaMapMarkerAlt />
-          <span>View Route in Google Maps</span>
+          Open External Interface
         </a>
-        <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          Opens Google Maps with turn-by-turn directions from origin to destination
-        </p>
       </div>
     </div>
   );

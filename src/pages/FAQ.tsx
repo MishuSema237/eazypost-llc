@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { useTheme } from '../contexts/ThemeContext';
+import { FaChevronDown, FaChevronUp, FaQuestionCircle } from 'react-icons/fa';
+import Icon from '../components/icons/Icon';
 import AnimatedCard from '../components/animations/AnimatedCard';
 
 interface FAQItem {
@@ -9,7 +9,6 @@ interface FAQItem {
 }
 
 const FAQ: React.FC = () => {
-  const { isDarkMode } = useTheme();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const faqItems: FAQItem[] = [
@@ -19,11 +18,11 @@ const FAQ: React.FC = () => {
     },
     {
       question: "What shipping services do you offer?",
-      answer: "We offer a comprehensive range of shipping services including Air Freight, Sea Freight, and Ground Transport. We also provide additional services such as warehousing, customs clearance, and cargo insurance to meet all your logistics needs."
+      answer: "We offer a comprehensive range of shipping services including Air Freight, Ocean Freight, and Ground Transport. We also provide additional services such as warehousing, customs clearance, and cargo insurance to meet all your logistics needs."
     },
     {
       question: "How are shipping rates calculated?",
-      answer: "Shipping rates are calculated based on several factors including: weight and dimensions of the package, shipping distance, delivery speed, and type of service selected. For accurate pricing, please contact our customer service team."
+      answer: "Shipping rates are calculated based on several factors including: weight and dimensions of the package, shipping distance, delivery speed, and type of service selected. For accurate pricing, please use our Get a Quote feature or contact our customer service team."
     },
     {
       question: "What is the estimated delivery time?",
@@ -31,7 +30,7 @@ const FAQ: React.FC = () => {
     },
     {
       question: "Do you offer international shipping?",
-      answer: "Yes, we offer international shipping services to over 150 countries worldwide. Our global network ensures reliable and efficient delivery of your shipments across borders, with full customs clearance support."
+      answer: "Yes, EazyPost LLC offers international shipping services to over 150 countries worldwide. Our global network ensures reliable and efficient delivery of your shipments across borders, with full customs clearance support."
     },
     {
       question: "What items are prohibited for shipping?",
@@ -52,50 +51,53 @@ const FAQ: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className={`relative ${isDarkMode ? 'bg-[#1a0e0a]' : 'bg-[#351c15]'} py-16`}>
-        <div className="absolute inset-0">
-          <div className={`w-full h-full ${isDarkMode ? 'opacity-20' : 'opacity-30'} bg-pattern`}></div>
+      <div className="relative bg-eazypost-blue py-20 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <img
+            src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+            alt="FAQ"
+            className="w-full h-full object-cover"
+          />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Frequently Asked Questions
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+          <h1 className="text-4xl font-black uppercase tracking-tight sm:text-5xl lg:text-6xl">
+            Frequently Asked <span className="text-eazypost-red">Questions</span>
           </h1>
-          <p className="mt-6 text-xl text-gray-300 max-w-3xl mx-auto">
-            Find answers to common questions about our shipping and logistics services
+          <div className="w-20 h-1 bg-eazypost-red mx-auto mt-6"></div>
+          <p className="mt-8 text-xl text-gray-200 max-w-3xl mx-auto">
+            Get quick answers to common inquiries about EazyPost LLC logistics and shipping operations.
           </p>
         </div>
       </div>
 
       {/* FAQ Section */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="space-y-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="space-y-4">
           {faqItems.map((item, index) => (
-            <AnimatedCard key={index} animation="fade" delay={`${index * 100}ms`}>
-              <div 
-                className={`rounded-lg overflow-hidden ${
-                  isDarkMode 
-                    ? 'bg-gray-800 hover:bg-gray-750' 
-                    : 'bg-white hover:bg-gray-50'
-                } shadow-lg transition-colors duration-200`}
+            <AnimatedCard key={index} animation="fade" delay={`${index * 50}ms`}>
+              <div
+                className={`border-b border-gray-100 transition-all duration-300 ${openIndex === index ? 'bg-gray-50' : 'bg-white'}`}
               >
                 <button
-                  className="w-full px-6 py-4 flex justify-between items-center focus:outline-none"
+                  className="w-full py-6 flex justify-between items-center focus:outline-none group"
                   onClick={() => toggleQuestion(index)}
                 >
-                  <h3 className={`text-left font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                  <h3 className={`text-left font-bold uppercase tracking-wide text-sm md:text-base ${openIndex === index ? 'text-eazypost-red' : 'text-eazypost-blue group-hover:text-eazypost-red'}`}>
                     {item.question}
                   </h3>
-                  <span className={`ml-4 flex-shrink-0 ${isDarkMode ? 'text-[#ffbe03]' : 'text-[#351c15]'}`}>
-                    {openIndex === index ? <FaChevronUp /> : <FaChevronDown />}
+                  <span className={`ml-4 flex-shrink-0 ${openIndex === index ? 'text-eazypost-red' : 'text-eazypost-blue'}`}>
+                    {openIndex === index ? <Icon icon={FaChevronUp} /> : <Icon icon={FaChevronDown} />}
                   </span>
                 </button>
-                {openIndex === index && (
-                  <div className={`px-6 pb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    <p>{item.answer}</p>
+                <div
+                  className={`overflow-hidden transition-all duration-300 ${openIndex === index ? 'max-h-96 pb-8' : 'max-h-0'}`}
+                >
+                  <div className="text-gray-600 leading-relaxed text-lg border-l-4 border-eazypost-red pl-6">
+                    {item.answer}
                   </div>
-                )}
+                </div>
               </div>
             </AnimatedCard>
           ))}
@@ -103,23 +105,20 @@ const FAQ: React.FC = () => {
       </div>
 
       {/* Contact Section */}
-      <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} py-12`}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+      <div className="bg-eazypost-blue py-16 text-white text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Icon icon={FaQuestionCircle} className="text-5xl text-eazypost-red mx-auto mb-6 opacity-80" />
+          <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight mb-4">
             Still have questions?
           </h2>
-          <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            Our customer service team is here to help you with any questions you may have.
+          <p className="text-gray-300 mb-10 max-w-xl mx-auto uppercase tracking-widest text-xs font-bold">
+            Our specialized support team is available 24/7 to assist with complex inquiries.
           </p>
           <a
             href="/contact"
-            className={`inline-flex items-center px-6 py-3 rounded-md text-base font-medium ${
-              isDarkMode 
-                ? 'bg-[#ffbe03] text-gray-900 hover:bg-[#e6a902]' 
-                : 'bg-[#351c15] text-white hover:bg-[#4a2a1f]'
-            } transition-colors duration-200`}
+            className="inline-flex items-center px-10 py-4 bg-eazypost-red text-white font-black uppercase tracking-widest text-sm rounded-sm hover:translate-y-[-2px] transition-all"
           >
-            Contact Us
+            Contact Support
           </a>
         </div>
       </div>
@@ -127,4 +126,4 @@ const FAQ: React.FC = () => {
   );
 };
 
-export default FAQ; 
+export default FAQ;

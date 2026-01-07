@@ -5,12 +5,9 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { ThemeProvider } from './contexts/ThemeContext';
 import PrivateRoute from './components/PrivateRoute';
-import ThemeToggle from './components/ThemeToggle';
 import Navbar from './components/Navigation';
 import Footer from './components/Footer';
 import Home from './pages/Home';
-import About from './pages/About';
-import Services from './pages/Services';
 import Contact from './pages/Contact';
 import Track from './pages/Track';
 import Login from './pages/Login';
@@ -29,14 +26,12 @@ const App: React.FC = () => {
       <ThemeProvider>
         <TrackingProvider>
           <Router>
-            <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+            <div className="flex flex-col min-h-screen bg-white transition-colors duration-300">
               <ToastContainer position="top-right" />
               <Navbar />
               <main className="flex-grow">
                 <Routes>
                   <Route path="/" element={<Home />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/services" element={<Services />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/track" element={<Track />} />
                   <Route path="/track/:trackingNumber" element={<Track />} />
@@ -55,7 +50,6 @@ const App: React.FC = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
-              <ThemeToggle />
               <Footer />
             </div>
             <LiveChat />

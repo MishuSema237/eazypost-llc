@@ -32,47 +32,75 @@ export const geocodeAddress = async (address: string): Promise<GeocodingResult> 
     return fallbackResult;
   }
 
+  const API_BASE = process.env.REACT_APP_API_URL || '';
+
   try {
+    // Call our backend proxy instead of Nominatim directly to avoid CORS/403 errors
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanAddress)}&limit=1&addressdetails=1`
+      `${API_BASE}/api/geocode?address=${encodeURIComponent(cleanAddress)}`
     );
-    
+
     if (!response.ok) {
       throw new Error(`Geocoding request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    
+
     if (data && data.length > 0 && data[0].lat && data[0].lon) {
       const lat = parseFloat(data[0].lat);
       const lng = parseFloat(data[0].lon);
-      
+
       if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
         throw new Error('Invalid coordinates returned');
       }
-      
+
       const result: GeocodingResult = {
         coordinates: { lat, lng },
         formattedAddress: data[0].display_name || cleanAddress
       };
-      
+
       geocodingCache.set(address, result);
       return result;
     } else {
+      // If precise match fails, try fallback logic
+      const parts = cleanAddress.split(',').map(p => p.trim());
+
+      // Try finding a postal code
+      const postalCode = parts.find(p => /^[A-Z0-9]{3}\s?[A-Z0-9]{3}$/i.test(p) || /^\d{5}$/.test(p));
+      const country = parts[parts.length - 1];
+
+      if (postalCode) {
+        // Fallback 1: Search by Postal Code + Country
+        const fallbackQuery = `${postalCode}, ${country}`;
+        const fbResponse = await fetch(`${API_BASE}/api/geocode?address=${encodeURIComponent(fallbackQuery)}`);
+
+        if (fbResponse.ok) {
+          const fbData = await fbResponse.json();
+          if (fbData && fbData.length > 0) {
+            const result: GeocodingResult = {
+              coordinates: { lat: parseFloat(fbData[0].lat), lng: parseFloat(fbData[0].lon) },
+              formattedAddress: fbData[0].display_name
+            };
+            geocodingCache.set(address, result);
+            return result;
+          }
+        }
+      }
+
       throw new Error('Address not found');
     }
   } catch (error) {
     console.error(`Geocoding error for "${cleanAddress}":`, error);
-    
+
     const lowerAddress = cleanAddress.toLowerCase();
     let fallbackCoords = fallbackCoordinates.default;
-    
+
     if (lowerAddress.includes('europe') || lowerAddress.includes('uk') || lowerAddress.includes('germany') || lowerAddress.includes('france')) {
       fallbackCoords = fallbackCoordinates.europe;
     } else if (lowerAddress.includes('asia') || lowerAddress.includes('china') || lowerAddress.includes('japan') || lowerAddress.includes('india')) {
       fallbackCoords = fallbackCoordinates.asia;
     }
-    
+
     const fallbackResult: GeocodingResult = {
       coordinates: fallbackCoords,
       formattedAddress: cleanAddress
@@ -84,7 +112,7 @@ export const geocodeAddress = async (address: string): Promise<GeocodingResult> 
 
 export const geocodeMultipleAddresses = async (addresses: string[]): Promise<GeocodingResult[]> => {
   const results: GeocodingResult[] = [];
-  
+
   for (const address of addresses) {
     try {
       const result = await geocodeAddress(address);
@@ -97,6 +125,6 @@ export const geocodeMultipleAddresses = async (addresses: string[]): Promise<Geo
       });
     }
   }
-  
+
   return results;
 };

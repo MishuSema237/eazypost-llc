@@ -7,8 +7,9 @@ interface IconProps {
   size?: number;
 }
 
-const Icon: React.FC<IconProps> = ({ icon: IconComponent, className, size }) => {
-  return <IconComponent className={className} size={size} />;
+const Icon = ({ icon: IconComponent, className, size }: IconProps): any => {
+  const Component = IconComponent as any;
+  return <Component className={className} size={size} />;
 };
 
 export default Icon; 

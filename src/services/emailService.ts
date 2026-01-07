@@ -1,33 +1,7 @@
-import emailjs from '@emailjs/browser';
-import { Shipment } from './shipmentService';
+import { Shipment } from '../types/shipment';
 
-const isTest = process.env.NODE_ENV === 'test';
-const DOMAIN = 'https://global-track-courier.vercel.app/';
-
-const checkEmailConfig = (templateType: string) => {
-  const prefix = isTest ? 'TEST_' : 'REACT_APP_EMAILJS';
-  const requiredVars = [
-    `${prefix}_SERVICE_ID`,
-    `${prefix}_${templateType.toUpperCase()}_TEMPLATE_ID`,
-    `${prefix}_USER_ID`
-  ];
-
-  const missingVars = requiredVars.filter(varName => !process.env[varName]);
-  if (missingVars.length > 0) {
-    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
-  }
-};
-
-const formatPackagesForEmail = (packages: Shipment['packages']) => {
-  return packages.map(pkg => {
-    return `${pkg.quantity}x ${pkg.pieceType}
-Description: ${pkg.description || 'N/A'}
-Dimensions: ${pkg.length}cm x ${pkg.width}cm x ${pkg.height}cm
-Weight: ${pkg.weight}kg`;
-  }).join('\n\n');
-};
-
-export interface EmailData extends Shipment {}
+const API_BASE = process.env.REACT_APP_API_URL || '';
+const API_URL = `${API_BASE}/api/send-email`;
 
 export interface ContactFormData {
   name: string;
@@ -36,112 +10,66 @@ export interface ContactFormData {
   message: string;
 }
 
-export const sendShipperEmail = async (data: EmailData) => {
+export const sendShipperEmail = async (data: Shipment) => {
   try {
-    checkEmailConfig('SHIPPER');
-    const prefix = isTest ? 'TEST_' : 'REACT_APP_EMAILJS';
-    
-    const templateParams = {
-      to_name: data.shipperName,
-      tracking: data.trackingNumber,
-      status: data.status || 'pending',
-      location: data.currentLocation || data.origin,
-      origin: data.origin,
-      destination: data.destination,
-      delivery: data.expectedDeliveryDate || 'Not specified',
-      receiver: data.receiverName,
-      receiver_email: data.receiverEmail,
-      packages: formatPackagesForEmail(data.packages),
-      url: `${DOMAIN}/track/${data.trackingNumber}`,
-      to_email: data.shipperEmail,
-      subject: 'Shipment Created'
-    };
-    
-    const response = await emailjs.send(
-      process.env[`${prefix}_SERVICE_ID`] || '',
-      process.env[`${prefix}_SHIPPER_TEMPLATE_ID`] || '',
-      templateParams,
-      process.env[`${prefix}_USER_ID`] || ''
-    );
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'shipper',
+        data
+      }),
+    });
 
-    if (response.status !== 200) {
-      throw new Error('Failed to send shipper email');
-    }
-
-    return response;
+    if (!response.ok) throw new Error('Failed to send shipper email');
+    return await response.json();
   } catch (error) {
     console.error('Shipper email error:', error);
-    throw new Error('Failed to send shipper email');
+    throw error;
   }
 };
 
-export const sendReceiverEmail = async (data: EmailData) => {
+export const sendReceiverEmail = async (data: Shipment) => {
   try {
-    checkEmailConfig('RECEIVER');
-    const prefix = isTest ? 'TEST_' : 'REACT_APP_EMAILJS';
-    
-    const templateParams = {
-      to_name: data.receiverName,
-      tracking_number: data.trackingNumber,
-      origin: data.origin,
-      destination: data.destination,
-      expected_delivery_date: data.expectedDeliveryDate || 'Not specified',
-      tracking_url: `${DOMAIN}/track/${data.trackingNumber}`,
-      to_email: data.receiverEmail,
-      subject: 'Package Incoming'
-    };
-    
-    const response = await emailjs.send(
-      process.env[`${prefix}_SERVICE_ID`] || '',
-      process.env[`${prefix}_RECEIVER_TEMPLATE_ID`] || '',
-      templateParams,
-      process.env[`${prefix}_USER_ID`] || ''
-    );
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'receiver',
+        data
+      }),
+    });
 
-    if (response.status !== 200) {
-      throw new Error('Failed to send receiver email');
-    }
-
-    return response;
+    if (!response.ok) throw new Error('Failed to send receiver email');
+    return await response.json();
   } catch (error) {
     console.error('Receiver email error:', error);
-    throw new Error('Failed to send receiver email');
+    throw error;
   }
 };
 
 export const sendContactFormEmail = async (data: ContactFormData) => {
   try {
-    const prefix = isTest ? 'TEST_' : 'REACT_APP_EMAILJS';
-    const secondaryPrefix = isTest ? 'TEST_' : 'REACT_APP_EMAILJS_SECONDARY';
-    
-    const templateParams = {
-      from_name: data.name,
-      from_email: data.email,
-      subject: data.subject,
-      message: data.message,
-      reply_to: data.email
-    };
-    
-    const response = await emailjs.send(
-      process.env[`${secondaryPrefix}_SERVICE_ID`] || '',
-      process.env[`${secondaryPrefix}_CONTACT_TEMPLATE_ID`] || '',
-      templateParams,
-      process.env[`${secondaryPrefix}_USER_ID`] || ''
-    );
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'contact',
+        data
+      }),
+    });
 
-    if (response.status !== 200) {
-      throw new Error('Failed to send contact form email');
-    }
-
-    return response;
+    if (!response.ok) throw new Error('Failed to send contact form email');
+    return await response.json();
   } catch (error) {
-    throw new Error('Failed to send contact form email');
+    console.error('Contact form email error:', error);
+    throw error;
   }
 };
 
 export const sendTestEmails = async () => {
   try {
-    const testData: EmailData = {
+    const testData: Shipment = {
       id: 'test-id',
       trackingNumber: 'TEST123456',
       shipperName: 'Test Shipper',
@@ -204,4 +132,6 @@ export const sendTestEmails = async () => {
     console.error('Test emails error:', error);
     throw new Error('Failed to send test emails');
   }
-}; 
+};
+
+export const testEmailService = sendTestEmails;

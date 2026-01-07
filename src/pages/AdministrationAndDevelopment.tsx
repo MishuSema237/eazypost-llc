@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import {
   Shipment,
   getAllShipments,
@@ -10,69 +9,26 @@ import {
   deleteShipment,
   updateTrackingInfo
 } from '../services/shipmentService';
-import {
-  User,
-  getAllUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-  updateUserPermissions
-} from '../services/userService';
 import { sendShipperEmail, sendReceiverEmail } from '../services/emailService';
-import { FaPlus, FaEdit, FaTrash, FaMapMarkerAlt, FaSearch, FaFilter, FaSync, FaSpinner, FaEnvelope, FaChartLine, FaUsers, FaCog, FaShieldAlt } from 'react-icons/fa';
-import Icon from '../components/icons/Icon';
+import {
+  FaPlus,
+  FaTrash,
+  FaMapMarkerAlt,
+  FaSearch,
+  FaSync,
+  FaSpinner,
+  FaEnvelope,
+  FaShieldAlt,
+  FaFileInvoice,
+  FaHistory
+} from 'react-icons/fa';
 import AnimatedCard from '../components/animations/AnimatedCard';
 import { toast } from 'react-toastify';
+import Icon from '../components/icons/Icon';
 
-type ShipmentFormData = {
-  // Shipper Information
-  shipperName: string;
-  shipperAddress: string;
-  shipperPhone: string;
-  shipperEmail: string;
-  
-  // Receiver Information
-  receiverName: string;
-  receiverAddress: string;
-  receiverPhone: string;
-  receiverEmail: string;
-  
-  // Shipment Information
-  origin: string;
-  destination: string;
-  carrier: string;
-  typeOfShipment: string;
-  shipmentMode: string;
-  packageCount: number;
-  product: string;
-  productQuantity: number;
-  paymentMode: string;
-  totalFreight: number;
-  weight: number;
-  
-  // Dates and Times
-  expectedDeliveryDate: string;
-  departureTime: string;
-  pickupDate: string;
-  pickupTime: string;
-  
-  // Package Details
-  packages: Array<{
-    quantity: number;
-    pieceType: string;
-    description: string;
-    length: number;
-    width: number;
-    height: number;
-    weight: number;
-  }>;
-  
-  // Status and Comments
-  status: 'pending' | 'in_transit' | 'delivered' | 'delayed' | 'on_hold';
-  comments: string;
-};
+type ManifestFormData = Omit<Shipment, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt' | 'shipmentHistory'>;
 
-const defaultShipmentForm: ShipmentFormData = {
+const defaultManifestForm: ManifestFormData = {
   shipperName: '',
   shipperAddress: '',
   shipperPhone: '',
@@ -83,13 +39,13 @@ const defaultShipmentForm: ShipmentFormData = {
   receiverEmail: '',
   origin: '',
   destination: '',
-  carrier: '',
-  typeOfShipment: '',
-  shipmentMode: '',
+  carrier: 'EazyPost LLC',
+  typeOfShipment: 'Express',
+  shipmentMode: 'Air',
   packageCount: 1,
   product: '',
   productQuantity: 1,
-  paymentMode: '',
+  paymentMode: 'Bank Transfer',
   totalFreight: 0,
   weight: 0,
   expectedDeliveryDate: '',
@@ -98,7 +54,7 @@ const defaultShipmentForm: ShipmentFormData = {
   pickupTime: '',
   packages: [{
     quantity: 1,
-    pieceType: '',
+    pieceType: 'Box',
     description: '',
     length: 0,
     width: 0,
@@ -106,1434 +62,444 @@ const defaultShipmentForm: ShipmentFormData = {
     weight: 0
   }],
   status: 'pending',
-  comments: ''
-};
-
-// Add these formatting functions at the top of the file after the imports
-const formatPaymentMode = (mode: string) => {
-  const formattingMap: { [key: string]: string } = {
-    'bank_transfer': 'Bank Transfer',
-    'credit_card': 'Credit Card',
-    'cash': 'Cash',
-    'check': 'Check'
-  };
-  return formattingMap[mode.toLowerCase()] || mode;
-};
-
-const formatShipmentType = (type: string) => {
-  const formattingMap: { [key: string]: string } = {
-    'standard': 'Standard',
-    'express': 'Express',
-    'economy': 'Economy'
-  };
-  return formattingMap[type.toLowerCase()] || type;
-};
-
-const formatShipmentMode = (mode: string) => {
-  const formattingMap: { [key: string]: string } = {
-    'land_shipping': 'Land Shipping',
-    'air_shipping': 'Air Shipping',
-    'sea_shipping': 'Sea Shipping'
-  };
-  return formattingMap[mode.toLowerCase()] || mode;
+  comments: '',
+  currentLocation: '',
+  totalVolumetricWeight: 0,
+  totalVolume: 0,
+  totalActualWeight: 0
 };
 
 const AdministrationAndDevelopment: React.FC = () => {
-  const { logout, user } = useAuth();
-  const { isDarkMode } = useTheme();
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
-  // State for shipments
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
-  const [showShipmentForm, setShowShipmentForm] = useState(false);
+  const [showManifestForm, setShowManifestForm] = useState(false);
   const [showTrackingForm, setShowTrackingForm] = useState(false);
-
-  // Form states
-  const [shipmentFormData, setShipmentFormData] = useState<ShipmentFormData>(defaultShipmentForm);
-  const [trackingFormData, setTrackingFormData] = useState<Partial<Shipment>>({});
-
+  const [manifestFormData, setManifestFormData] = useState<ManifestFormData>(defaultManifestForm);
+  const [trackingFormData, setTrackingFormData] = useState({ status: '', currentLocation: '', remarks: '' });
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'in_transit' | 'delivered' | 'delayed' | 'on_hold'>('all');
   const [loading, setLoading] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const shipmentsData = await getAllShipments();
-      setShipments(shipmentsData);
-      if (shipmentsData.length > 0) {
-      toast.success('Data loaded successfully');
-      }
+      const data = await getAllShipments();
+      setShipments(data);
     } catch (error) {
-      toast.error('Failed to load data');
-      console.error(error);
+      toast.error('System synchronization failed');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []); // Empty dependency array means this effect runs once on mount
+  useEffect(() => { loadData(); }, []);
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/administration_and_development/login');
-    } catch (error) {
-      console.error('Failed to log out:', error);
-    }
+    await logout();
+    navigate('/administration_and_development/login');
   };
 
-  const handleTestEmail = async () => {
-    try {
-      const testShipment: Shipment = {
-        id: 'test-id',
-        trackingNumber: 'TEST' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0'),
-        shipperName: 'Test Shipper',
-        shipperEmail: 'mishaelsema@gmail.com',
-        shipperAddress: '123 Shipper St, Test City',
-        shipperPhone: '+1 234-567-8900',
-        receiverName: 'Test Receiver',
-        receiverEmail: 'mishaelsema@gmail.com',
-        receiverAddress: '456 Receiver Ave, Test Town',
-        receiverPhone: '+1 987-654-3210',
-        origin: 'Test Origin City',
-        destination: 'Test Destination City',
-        carrier: 'Global Track Express',
-        typeOfShipment: 'Express',
-        shipmentMode: 'Air Shipping',
-        packageCount: 2,
-        product: 'Test Products',
-        productQuantity: 5,
-        paymentMode: 'Credit Card',
-        totalFreight: 250.00,
-        weight: 15.5,
-        expectedDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        departureTime: '09:00',
-        pickupDate: new Date().toISOString().split('T')[0],
-        pickupTime: '14:00',
-        packages: [
-          {
-            quantity: 2,
-            pieceType: 'Box',
-            description: 'Fragile Electronics',
-            length: 30,
-            width: 20,
-            height: 15,
-            weight: 7.5
-          },
-          {
-            quantity: 3,
-            pieceType: 'Package',
-            description: 'Office Supplies',
-            length: 25,
-            width: 25,
-            height: 10,
-            weight: 8
-          }
-        ],
-        totalVolumetricWeight: 18.75,
-        totalVolume: 0.0225,
-        totalActualWeight: 15.5,
-        shipmentHistory: [
-          {
-            date: new Date().toISOString().split('T')[0],
-            time: new Date().toLocaleTimeString(),
-            location: 'Test Origin City',
-            status: 'pending',
-            updatedBy: 'admin',
-            remarks: 'Shipment created and ready for pickup'
-          }
-        ],
-        status: 'pending',
-        currentLocation: 'Test Origin City',
-        comments: 'Test shipment for email template verification',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      await Promise.all([
-        sendShipperEmail(testShipment),
-        sendReceiverEmail(testShipment)
-      ]);
-      
-      toast.success('Test emails sent successfully!');
-    } catch (error) {
-      console.error('Email test failed:', error);
-      toast.error('Failed to send test emails');
-    }
-  };
-
-  // Shipment handlers
-  const handleCreateShipment = async (e: React.FormEvent) => {
+  const handleCreateManifest = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isCreating) return;
-    
+    setIsProcessing(true);
     try {
-      setIsCreating(true);
-      // Calculate totals
-      const totalVolumetricWeight = shipmentFormData.packages.reduce((acc, pkg) => {
-        return acc + (pkg.length * pkg.width * pkg.height * pkg.quantity) / 5000;
-      }, 0);
-      
-      const totalVolume = shipmentFormData.packages.reduce((acc, pkg) => {
-        return acc + (pkg.length * pkg.width * pkg.height * pkg.quantity) / 1000000;
-      }, 0);
-      
-      const totalActualWeight = shipmentFormData.packages.reduce((acc, pkg) => {
-        return acc + (pkg.weight * pkg.quantity);
-      }, 0);
+      const totalVolumetricWeight = manifestFormData.packages.reduce((acc, pkg) => acc + (pkg.length * pkg.width * pkg.height * pkg.quantity) / 5000, 0);
+      const totalVolume = manifestFormData.packages.reduce((acc, pkg) => acc + (pkg.length * pkg.width * pkg.height * pkg.quantity) / 1000000, 0);
+      const totalActualWeight = manifestFormData.packages.reduce((acc, pkg) => acc + (pkg.weight * pkg.quantity), 0);
 
-      const shipmentData = {
-        ...shipmentFormData,
-        currentLocation: shipmentFormData.origin,
+      await createShipment({
+        ...manifestFormData,
         totalVolumetricWeight,
         totalVolume,
-        totalActualWeight,
-        shipmentHistory: [{
-          date: new Date().toISOString().split('T')[0],
-          time: new Date().toLocaleTimeString(),
-          location: shipmentFormData.origin,
-          status: shipmentFormData.status,
-          updatedBy: 'admin',
-          remarks: 'Shipment created'
-        }]
-      };
-
-      await createShipment(shipmentData);
-      setShowShipmentForm(false);
+        totalActualWeight
+      });
+      setShowManifestForm(false);
+      setManifestFormData(defaultManifestForm);
       loadData();
-      toast.success('Shipment created successfully');
+      toast.success('Manifest generated and logged');
     } catch (error) {
-      toast.error('Failed to create shipment');
-      console.error(error);
+      toast.error('Manifest creation failed');
     } finally {
-      setIsCreating(false);
+      setIsProcessing(false);
     }
   };
 
   const handleUpdateTracking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedShipment || isUpdating) return;
-
+    if (!selectedShipment) return;
+    setIsProcessing(true);
     try {
-      setIsUpdating(true);
-      
-      // If status or location has changed, update tracking info
-      if (
-        (trackingFormData.status && trackingFormData.status !== selectedShipment.status) ||
-        (trackingFormData.currentLocation && trackingFormData.currentLocation !== selectedShipment.currentLocation)
-      ) {
-        await updateTrackingInfo(
-          selectedShipment.id,
-          trackingFormData.status || selectedShipment.status,
-          trackingFormData.currentLocation || selectedShipment.currentLocation
-        );
-      }
+      const targetId = selectedShipment.id || (selectedShipment as any)._id;
+      if (!targetId) throw new Error('ID_UNMAPPED');
 
-      // Update other shipment details
-      await updateShipment(selectedShipment.id, trackingFormData);
-      
+      await updateTrackingInfo(
+        targetId,
+        trackingFormData.status,
+        trackingFormData.currentLocation,
+        trackingFormData.remarks
+      );
       setShowTrackingForm(false);
       loadData();
-      toast.success('Shipment updated successfully');
+      toast.success('Tracking trajectory updated');
     } catch (error) {
-      toast.error('Failed to update shipment');
-      console.error(error);
+      toast.error('Update synchronization failed');
     } finally {
-      setIsUpdating(false);
+      setIsProcessing(false);
     }
   };
 
-  const handleDeleteShipment = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this shipment?') && !isDeleting) {
+  const handleDeleteManifest = async (id: string) => {
+    if (window.confirm('IRREVERSIBLE: Delete this manifest?')) {
       try {
-        setIsDeleting(id);
         await deleteShipment(id);
         loadData();
-        toast.success('Shipment deleted successfully');
+        toast.success('Manifest purged');
       } catch (error) {
-        toast.error('Failed to delete shipment');
-        console.error(error);
-      } finally {
-        setIsDeleting(null);
+        toast.error('Purge failed');
       }
     }
   };
 
-  // Reset form data when closing modals
-  const resetShipmentForm = () => {
-    setShipmentFormData(defaultShipmentForm);
-    setShowShipmentForm(false);
+  const handleNotifyParties = async (shipment: Shipment) => {
+    try {
+      toast.info('Dispatching notifications...');
+      await Promise.all([
+        sendShipperEmail(shipment),
+        sendReceiverEmail(shipment)
+      ]);
+      toast.success('Emails dispatched');
+    } catch (error) {
+      toast.error('Notification dispatch failed');
+    }
   };
 
-  const resetTrackingForm = () => {
-    setTrackingFormData({});
-    setShowTrackingForm(false);
-    setSelectedShipment(null);
-  };
-
-  const filteredShipments = shipments.filter((shipment) =>
-    searchTerm
-      ? shipment.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.shipperName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.receiverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.status.toLowerCase().includes(searchTerm.toLowerCase())
-      : true
+  const filteredManifests = shipments.filter(m =>
+    m.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    m.shipperName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    m.receiverName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Hero Section */}
-      <div className="relative bg-[#351c15] dark:bg-gray-800 py-16">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
-            alt="Administration dashboard"
-            className="w-full h-full object-cover opacity-30 dark:opacity-20"
-          />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Administration & Development
-          </h1>
-          <p className="mt-6 text-xl text-gray-300 dark:text-gray-200 max-w-3xl mx-auto">
-            Manage shipments, users, and system settings with our comprehensive admin dashboard.
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-eazypost-blue pt-20 pb-12 px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div>
+            <h1 className="text-3xl font-black text-white uppercase tracking-tight">OPERATIONS <span className="text-eazypost-red">DASHBOARD</span></h1>
+            <p className="text-gray-400 uppercase tracking-widest text-[10px] font-bold mt-1">EazyPost LLC Global Management Terminal</p>
+          </div>
+          <div className="flex gap-4">
+            <button onClick={loadData} className="p-3 bg-white/10 text-white hover:bg-white/20 transition-all rounded-sm">
+              <Icon icon={FaSync} className={loading ? 'animate-spin' : ''} />
+            </button>
+            <button onClick={handleLogout} className="px-6 py-3 bg-eazypost-red text-white font-black uppercase text-xs tracking-widest rounded-sm hover:scale-105 transition-all">
+              Secure Terminate
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <AnimatedCard animation="slide" delay="0ms">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
-              <div className="text-[#351c15] dark:text-[#ffbe03] mb-4">
-                <Icon icon={FaEnvelope} size={32} />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Email Service</h3>
-              <p className="mt-2 text-base text-gray-500 dark:text-gray-400">
-                Test the email notification system for shipment updates.
-              </p>
-              <button
-                onClick={handleTestEmail}
-                className="mt-4 px-4 py-2 bg-[#351c15] dark:bg-[#ffbe03] text-white dark:text-gray-900 rounded-md hover:bg-[#4a2a1f] dark:hover:bg-[#e6a902]"
-              >
-                Test Email Service
-              </button>
-            </div>
-          </AnimatedCard>
-
-          <AnimatedCard animation="slide" delay="200ms">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
-              <div className="text-[#351c15] dark:text-[#ffbe03] mb-4">
-                <Icon icon={FaShieldAlt} size={32} />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">System Status</h3>
-              <p className="mt-2 text-base text-gray-500 dark:text-gray-400">
-                View and manage system security settings.
-              </p>
-              <button
-                onClick={handleLogout}
-                className="mt-4 px-4 py-2 bg-[#351c15] dark:bg-[#ffbe03] text-white dark:text-gray-900 rounded-md hover:bg-[#4a2a1f] dark:hover:bg-[#e6a902]"
-              >
-                Logout
-              </button>
-            </div>
-          </AnimatedCard>
-        </div>
-
-        {/* Controls */}
-        <div className="flex flex-wrap gap-4 mb-8">
-          <div className="flex-1 min-w-[200px]">
-            <input
-              type="text"
-              placeholder="Search shipments..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full px-4 py-2 rounded-md border ${
-                isDarkMode 
-                  ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400' 
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-              } focus:outline-none focus:ring-2 focus:ring-[#ffbe03] dark:focus:ring-[#ffbe03]`}
-            />
+      <div className="max-w-7xl mx-auto px-8 py-12">
+        {/* Stats / Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div className="bg-white p-8 border-b-4 border-eazypost-blue shadow-sm">
+            <Icon icon={FaFileInvoice} className="text-3xl text-eazypost-blue mb-4" />
+            <h3 className="font-black text-eazypost-blue uppercase text-sm mb-2">Total Manifests</h3>
+            <p className="text-4xl font-black text-eazypost-red">{shipments.length}</p>
           </div>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as any)}
-            className={`px-4 py-2 rounded-md border ${
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-700 text-gray-100' 
-                : 'bg-white border-gray-300 text-gray-900'
-            } focus:outline-none focus:ring-2 focus:ring-[#ffbe03] dark:focus:ring-[#ffbe03]`}
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="in_transit">In Transit</option>
-            <option value="delivered">Delivered</option>
-            <option value="delayed">Delayed</option>
-            <option value="on_hold">On Hold</option>
-          </select>
-          <button
-            onClick={loadData}
-            disabled={loading}
-            className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium ${
-              isDarkMode 
-                ? 'text-gray-900 bg-[#ffbe03] hover:bg-[#e6a902] disabled:bg-gray-600' 
-                : 'text-white bg-[#351c15] hover:bg-[#4a2a1f] disabled:bg-gray-400'
-            }`}
-          >
-            {loading ? (
-              <FaSpinner className="animate-spin mr-2" />
-            ) : (
-              <FaSync className="mr-2" />
-            )}
-            Refresh
-          </button>
-        </div>
-
-        {/* Shipments Table */}
-        <div className="mt-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-[#ffbe03]' : 'text-[#351c15]'}`}>Shipments</h2>
+          <div className="bg-white p-8 border-b-4 border-eazypost-red shadow-sm">
+            <Icon icon={FaPlus} className="text-3xl text-eazypost-red mb-4" />
+            <h3 className="font-black text-eazypost-blue uppercase text-sm mb-2">Operations</h3>
             <button
-              onClick={() => setShowShipmentForm(true)}
-              className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium ${
-                isDarkMode 
-                  ? 'text-gray-900 bg-[#ffbe03] hover:bg-[#e6a902]' 
-                  : 'text-white bg-[#351c15] hover:bg-[#4a2a1f]'
-              }`}
+              onClick={() => setShowManifestForm(true)}
+              className="mt-2 w-full py-3 bg-eazypost-blue text-white font-black uppercase text-[10px] tracking-widest hover:bg-eazypost-red transition-all"
             >
-              <FaPlus className="mr-2" />
-              New Shipment
+              Initialize New Manifest
             </button>
           </div>
+          <div className="bg-white p-8 border-b-4 border-gray-100 shadow-sm">
+            <Icon icon={FaShieldAlt} className="text-3xl text-gray-300 mb-4" />
+            <h3 className="font-black text-eazypost-blue uppercase text-sm mb-2">System Integrity</h3>
+            <p className="text-xs font-bold text-green-500 uppercase tracking-widest">Connection Active</p>
+          </div>
+        </div>
 
-          <div className={`overflow-x-auto ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg`}>
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className={`${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <tr>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Tracking Number
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Status
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Origin
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Destination
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Expected Delivery
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Payment Mode
-                  </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-500'
-                  }`}>
-                    Actions
-                  </th>
+        {/* Manifest Table */}
+        <div className="bg-white shadow-xl overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+            <div className="relative w-full max-w-md">
+              <Icon icon={FaSearch} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+              <input
+                type="text"
+                placeholder="FILTER BY MANIFEST / PARTIES"
+                className="w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-100 focus:border-eazypost-red focus:outline-none font-bold text-xs uppercase tracking-widest"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-eazypost-blue text-white uppercase text-[10px] tracking-widest">
+                  <th className="px-6 py-4">Manifest ID</th>
+                  <th className="px-6 py-4">Consignor/Shipper</th>
+                  <th className="px-6 py-4">Consignee/Receiver</th>
+                  <th className="px-6 py-4">Origin &gt; Destination</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-center">Execute</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {shipments
-                  .filter((shipment) =>
-                    searchTerm
-                      ? shipment.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        shipment.shipperName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        shipment.receiverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        shipment.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        shipment.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        shipment.status.toLowerCase().includes(searchTerm.toLowerCase())
-                      : true
-                  )
-                  .map((shipment) => (
-                    <tr key={shipment.id} className={`hover:bg-gray-50 dark:hover:bg-gray-700`}>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                        {shipment.trackingNumber}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          shipment.status === 'delivered' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                          shipment.status === 'in_transit' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
-                          shipment.status === 'delayed' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                          shipment.status === 'on_hold' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                          'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
-                        }`}>
-                          {shipment.status.replace('_', ' ').toUpperCase()}
-                        </span>
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                        {shipment.origin}
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                        {shipment.destination}
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                        {shipment.expectedDeliveryDate}
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-                        {formatPaymentMode(shipment.paymentMode)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => {
-                            setSelectedShipment(shipment);
-                            setShowTrackingForm(true);
-                          }}
-                          className={`text-[#351c15] dark:text-[#ffbe03] hover:text-[#4a2a1f] dark:hover:text-[#e6a902] mr-3`}
-                        >
-                          <FaMapMarkerAlt />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteShipment(shipment.id)}
-                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                        >
-                          <FaTrash />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+              <tbody className="divide-y divide-gray-100">
+                {filteredManifests.map(m => (
+                  <tr key={m.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-black text-eazypost-blue text-sm">{m.trackingNumber}</td>
+                    <td className="px-6 py-4 text-xs font-bold text-gray-600 uppercase">{m.shipperName}</td>
+                    <td className="px-6 py-4 text-xs font-bold text-gray-600 uppercase">{m.receiverName}</td>
+                    <td className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase">{m.origin} <span className="text-eazypost-red">→</span> {m.destination}</td>
+                    <td className="px-6 py-4">
+                      <span className="px-3 py-1 bg-gray-100 border text-[10px] font-black uppercase text-gray-600 tracking-tighter">
+                        {m.status.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 flex justify-center gap-2">
+                      <button onClick={() => { setSelectedShipment(m); setTrackingFormData({ status: m.status, currentLocation: m.currentLocation, remarks: '' }); setShowTrackingForm(true); }} className="p-2 text-eazypost-blue hover:text-eazypost-red"><Icon icon={FaHistory} /></button>
+                      <button onClick={() => handleNotifyParties(m)} className="p-2 text-eazypost-blue hover:text-eazypost-red"><Icon icon={FaEnvelope} /></button>
+                      <button onClick={() => {
+                        const targetId = m.id || (m as any)._id;
+                        handleDeleteManifest(targetId);
+                      }} className="p-2 text-gray-300 hover:text-eazypost-red"><Icon icon={FaTrash} /></button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      {/* Shipment Form Modal */}
-      {showShipmentForm && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg w-full max-w-4xl my-8">
-            <div className="p-6 border-b">
-              <h2 className="text-2xl font-bold">Create New Shipment</h2>
-            </div>
-            <div className="p-6 max-h-[calc(90vh-8rem)] overflow-y-auto">
-              <form onSubmit={handleCreateShipment} className="space-y-6">
-            {/* Shipper Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                    <h3 className="text-lg font-medium mb-2">Shipper Information</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Shipper Name</label>
-                    <input
-                      type="text"
-                          placeholder="Enter shipper's full name"
-                      value={shipmentFormData.shipperName}
-                      onChange={(e) => setShipmentFormData({ ...shipmentFormData, shipperName: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-md"
-                          title="Enter the full name of the person or company sending the shipment"
-                      required
-                    />
+      {/* Manifest Modal */}
+      {showManifestForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-eazypost-blue/90">
+          <div className="bg-white w-full max-w-5xl h-[90vh] overflow-y-auto shadow-2xl relative">
+            <button onClick={() => setShowManifestForm(false)} className="absolute top-6 right-6 font-black text-gray-300 hover:text-eazypost-red">CLOSE [X]</button>
+            <form onSubmit={handleCreateManifest} className="p-12">
+              <h2 className="text-3xl font-black text-eazypost-blue uppercase tracking-tight mb-12 border-b-4 border-eazypost-red pb-4">Initialize Manifest</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                {/* Shipper */}
+                <div className="space-y-6">
+                  <h3 className="font-black uppercase text-xs tracking-[0.3em] text-eazypost-red">Consignor Identification</h3>
+                  <div className="space-y-4">
+                    <input type="text" placeholder="SHIPPER NAME" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.shipperName} onChange={e => setManifestFormData({ ...manifestFormData, shipperName: e.target.value })} />
+                    <input type="text" placeholder="FULL ADDRESS" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.shipperAddress} onChange={e => setManifestFormData({ ...manifestFormData, shipperAddress: e.target.value })} />
+                    <input type="email" placeholder="EMAIL ADDRESS" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.shipperEmail} onChange={e => setManifestFormData({ ...manifestFormData, shipperEmail: e.target.value })} />
+                    <input type="text" placeholder="PHONE NUMBER" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.shipperPhone} onChange={e => setManifestFormData({ ...manifestFormData, shipperPhone: e.target.value })} />
                   </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Shipper Address</label>
-                    <input
-                      type="text"
-                          placeholder="Enter complete shipping address"
-                      value={shipmentFormData.shipperAddress}
-                      onChange={(e) => setShipmentFormData({ ...shipmentFormData, shipperAddress: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-md"
-                          title="Enter the complete address where the shipment will be picked up"
-                      required
-                    />
-                  </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Shipper Phone</label>
-                    <input
-                      type="tel"
-                          placeholder="Enter contact phone number"
-                      value={shipmentFormData.shipperPhone}
-                      onChange={(e) => setShipmentFormData({ ...shipmentFormData, shipperPhone: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-md"
-                          title="Enter a valid phone number for the shipper"
-                      required
-                    />
-                  </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Shipper Email</label>
-                    <input
-                      type="email"
-                          placeholder="Enter email address"
-                      value={shipmentFormData.shipperEmail}
-                      onChange={(e) => setShipmentFormData({ ...shipmentFormData, shipperEmail: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-md"
-                          title="Enter a valid email address for shipment notifications"
-                      required
-                    />
+                </div>
+                {/* Receiver */}
+                <div className="space-y-6">
+                  <h3 className="font-black uppercase text-xs tracking-[0.3em] text-eazypost-red">Consignee Identification</h3>
+                  <div className="space-y-4">
+                    <input type="text" placeholder="RECEIVER NAME" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.receiverName} onChange={e => setManifestFormData({ ...manifestFormData, receiverName: e.target.value })} />
+                    <input type="text" placeholder="FULL ADDRESS" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.receiverAddress} onChange={e => setManifestFormData({ ...manifestFormData, receiverAddress: e.target.value })} />
+                    <input type="email" placeholder="EMAIL ADDRESS" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.receiverEmail} onChange={e => setManifestFormData({ ...manifestFormData, receiverEmail: e.target.value })} />
+                    <input type="text" placeholder="PHONE NUMBER" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.receiverPhone} onChange={e => setManifestFormData({ ...manifestFormData, receiverPhone: e.target.value })} />
                   </div>
                 </div>
               </div>
 
-              <div>
-                    <h3 className="text-lg font-medium mb-2">Receiver Information</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Receiver Name</label>
-                    <input
-                      type="text"
-                          placeholder="Enter receiver's full name"
-                      value={shipmentFormData.receiverName}
-                      onChange={(e) => setShipmentFormData({ ...shipmentFormData, receiverName: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-md"
-                          title="Enter the full name of the person or company receiving the shipment"
-                      required
-                    />
+              {/* Shipment Details Section */}
+              <div className="mt-12 pt-12 border-t border-gray-100">
+                <h3 className="font-black uppercase text-xs tracking-[0.3em] text-eazypost-red mb-8">Shipment Configuration</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase text-gray-400">Logistics Routing</label>
+                    <input type="text" placeholder="ORIGIN" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs uppercase" required value={manifestFormData.origin} onChange={e => setManifestFormData({ ...manifestFormData, origin: e.target.value })} />
+                    <input type="text" placeholder="DESTINATION" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs uppercase" required value={manifestFormData.destination} onChange={e => setManifestFormData({ ...manifestFormData, destination: e.target.value })} />
+                    <input type="text" placeholder="CARRIER" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs uppercase" value={manifestFormData.carrier} onChange={e => setManifestFormData({ ...manifestFormData, carrier: e.target.value })} />
                   </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Receiver Address</label>
-                    <input
-                      type="text"
-                          placeholder="Enter complete delivery address"
-                      value={shipmentFormData.receiverAddress}
-                      onChange={(e) => setShipmentFormData({ ...shipmentFormData, receiverAddress: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-md"
-                          title="Enter the complete address where the shipment will be delivered"
-                      required
-                    />
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase text-gray-400">Mode & Selection</label>
+                    <select className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs uppercase" value={manifestFormData.typeOfShipment} onChange={e => setManifestFormData({ ...manifestFormData, typeOfShipment: e.target.value })}>
+                      <option value="Express">Express Delivery</option>
+                      <option value="Standard">Standard Freight</option>
+                      <option value="International">International Cargo</option>
+                      <option value="Ocean">Ocean Freight</option>
+                    </select>
+                    <select className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs uppercase" value={manifestFormData.shipmentMode} onChange={e => setManifestFormData({ ...manifestFormData, shipmentMode: e.target.value })}>
+                      <option value="Air">Air Freight</option>
+                      <option value="Sea">Sea Transport</option>
+                      <option value="Road">Road Logistics</option>
+                      <option value="Rail">Rail System</option>
+                    </select>
+                    <input type="text" placeholder="PAYMENT MODE (e.g. Bank Transfer)" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs uppercase" value={manifestFormData.paymentMode} onChange={e => setManifestFormData({ ...manifestFormData, paymentMode: e.target.value })} />
                   </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Receiver Phone</label>
-                    <input
-                      type="tel"
-                          placeholder="Enter contact phone number"
-                      value={shipmentFormData.receiverPhone}
-                      onChange={(e) => setShipmentFormData({ ...shipmentFormData, receiverPhone: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-md"
-                          title="Enter a valid phone number for the receiver"
-                      required
-                    />
-                  </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Receiver Email</label>
-                    <input
-                      type="email"
-                          placeholder="Enter email address"
-                      value={shipmentFormData.receiverEmail}
-                      onChange={(e) => setShipmentFormData({ ...shipmentFormData, receiverEmail: e.target.value })}
-                          className="w-full px-3 py-2 border rounded-md"
-                          title="Enter a valid email address for delivery notifications"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Shipment Information */}
-            <div>
-                  <h3 className="text-lg font-medium mb-2">Shipment Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Origin</label>
-                  <input
-                    type="text"
-                    placeholder="Enter origin location"
-                    value={shipmentFormData.origin}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, origin: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Enter the city or location where the shipment originates"
-                    required
-                  />
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-                  <input
-                    type="text"
-                    placeholder="Enter destination location"
-                    value={shipmentFormData.destination}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, destination: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Enter the city or location where the shipment will be delivered"
-                    required
-                  />
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Carrier</label>
-                      <input
-                        type="text"
-                        placeholder="Enter carrier name"
-                    value={shipmentFormData.carrier}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, carrier: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Enter the name of the shipping carrier or company"
-                    required
-                  />
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Type of Shipment</label>
-                  <select
-                    value={shipmentFormData.typeOfShipment}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, typeOfShipment: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Select the type of shipping service"
-                    required
-                  >
-                        <option value="">Select Type</option>
-                        <option value="standard">Standard</option>
-                        <option value="express">Express</option>
-                        <option value="economy">Economy</option>
-                  </select>
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Shipment Mode</label>
-                  <select
-                    value={shipmentFormData.shipmentMode}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, shipmentMode: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Select the mode of transportation"
-                    required
-                  >
-                        <option value="">Select Mode</option>
-                    <option value="land_shipping">Land Shipping</option>
-                    <option value="air_shipping">Air Shipping</option>
-                    <option value="sea_shipping">Sea Shipping</option>
-                  </select>
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
-                  <input
-                    type="text"
-                    placeholder="Enter product name"
-                    value={shipmentFormData.product}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, product: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Enter the name or description of the product being shipped"
-                    required
-                  />
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Product Quantity</label>
-                  <input
-                    type="number"
-                    placeholder="Enter quantity"
-                    value={shipmentFormData.productQuantity}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, productQuantity: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Enter the total quantity of products being shipped"
-                    required
-                  />
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Total Freight</label>
-                  <input
-                        type="number"
-                        placeholder="Enter total freight cost"
-                        value={shipmentFormData.totalFreight}
-                        onChange={(e) => setShipmentFormData({ ...shipmentFormData, totalFreight: parseFloat(e.target.value) })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Enter the total shipping cost"
-                    required
-                  />
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Weight</label>
-                  <input
-                    type="number"
-                        placeholder="Enter total weight"
-                        value={shipmentFormData.weight}
-                        onChange={(e) => setShipmentFormData({ ...shipmentFormData, weight: parseFloat(e.target.value) })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Enter the total weight of the shipment in kilograms"
-                    required
-                  />
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Payment Mode</label>
-                      <input
-                        type="text"
-                        placeholder="Enter payment method"
-                        value={shipmentFormData.paymentMode}
-                        onChange={(e) => {
-                          const value = e.target.value
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                            .join(' ');
-                          setShipmentFormData({ ...shipmentFormData, paymentMode: value });
-                        }}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Enter the preferred payment method"
-                        required
-                      />
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase text-gray-400">Inventory Details</label>
+                    <input type="text" placeholder="PRODUCT NAME (e.g. Industrial Gears)" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs uppercase focus:border-eazypost-blue outline-none" value={manifestFormData.product} onChange={e => setManifestFormData({ ...manifestFormData, product: e.target.value })} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="relative">
+                        <input type="number" placeholder="QTY" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs uppercase focus:border-eazypost-blue outline-none" value={manifestFormData.productQuantity || ''} onChange={e => setManifestFormData({ ...manifestFormData, productQuantity: Number(e.target.value) })} />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-gray-300">UNITS</span>
+                      </div>
+                      <div className="relative">
+                        <input type="number" placeholder="WEIGHT" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs uppercase focus:border-eazypost-blue outline-none" value={manifestFormData.weight || ''} onChange={e => setManifestFormData({ ...manifestFormData, weight: Number(e.target.value) })} />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-gray-300">KG</span>
+                      </div>
                     </div>
-              </div>
-            </div>
-
-            {/* Dates and Times */}
-            <div>
-                  <h3 className="text-lg font-medium mb-2">Dates and Times</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Expected Delivery Date</label>
-                  <input
-                    type="date"
-                        placeholder="Select expected delivery date"
-                    value={shipmentFormData.expectedDeliveryDate}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, expectedDeliveryDate: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Select the expected date of delivery"
-                    required
-                  />
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Departure Time</label>
-                  <input
-                    type="time"
-                        placeholder="Select departure time"
-                    value={shipmentFormData.departureTime}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, departureTime: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Select the scheduled departure time"
-                    required
-                  />
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Date</label>
-                  <input
-                    type="date"
-                        placeholder="Select pickup date"
-                    value={shipmentFormData.pickupDate}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, pickupDate: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Select the date when the shipment will be picked up"
-                    required
-                  />
-                </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Time</label>
-                  <input
-                    type="time"
-                        placeholder="Select pickup time"
-                    value={shipmentFormData.pickupTime}
-                    onChange={(e) => setShipmentFormData({ ...shipmentFormData, pickupTime: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Select the scheduled pickup time"
-                    required
-                  />
+                    <div className="relative">
+                      <input type="number" placeholder="TOTAL FREIGHT CHARGE" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs uppercase focus:border-eazypost-blue outline-none" value={manifestFormData.totalFreight || ''} onChange={e => setManifestFormData({ ...manifestFormData, totalFreight: Number(e.target.value) })} />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-gray-300">USD</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Package Details */}
-            <div>
-                  <h3 className="text-lg font-medium mb-2">Package Details</h3>
-              {shipmentFormData.packages.map((pkg, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-md">
+              {/* Temporal Data Section */}
+              <div className="mt-12 pt-12 border-t border-gray-100">
+                <h3 className="font-black uppercase text-xs tracking-[0.3em] text-eazypost-red mb-8">Temporal Synchronization</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                    <input
-                      type="number"
-                      placeholder="Quantity"
-                      value={pkg.quantity}
-                      onChange={(e) => {
-                        const newPackages = [...shipmentFormData.packages];
-                        newPackages[index].quantity = parseInt(e.target.value);
-                        setShipmentFormData({ ...shipmentFormData, packages: newPackages });
-                      }}
-                          className="w-full px-3 py-2 border rounded-md"
-                      required
-                    />
+                    <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">Expected Delivery</label>
+                    <input type="date" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs" required value={manifestFormData.expectedDeliveryDate} onChange={e => setManifestFormData({ ...manifestFormData, expectedDeliveryDate: e.target.value })} />
                   </div>
                   <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Piece Type</label>
-                    <input
-                      type="text"
-                      placeholder="Piece Type"
-                      value={pkg.pieceType}
-                      onChange={(e) => {
-                        const newPackages = [...shipmentFormData.packages];
-                        newPackages[index].pieceType = e.target.value;
-                        setShipmentFormData({ ...shipmentFormData, packages: newPackages });
-                      }}
-                          className="w-full px-3 py-2 border rounded-md"
-                      required
-                    />
+                    <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">Departure Time</label>
+                    <input type="time" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs" value={manifestFormData.departureTime} onChange={e => setManifestFormData({ ...manifestFormData, departureTime: e.target.value })} />
                   </div>
                   <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
-                        <input
-                          type="number"
-                          placeholder="Weight (kg)"
-                          value={pkg.weight}
-                          onChange={(e) => {
-                            const newPackages = [...shipmentFormData.packages];
-                            newPackages[index].weight = parseFloat(e.target.value);
-                            setShipmentFormData({ ...shipmentFormData, packages: newPackages });
-                          }}
-                          className="w-full px-3 py-2 border rounded-md"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea
-                          placeholder="Description"
-                          value={pkg.description}
-                          onChange={(e) => {
-                            const newPackages = [...shipmentFormData.packages];
-                            newPackages[index].description = e.target.value;
-                            setShipmentFormData({ ...shipmentFormData, packages: newPackages });
-                          }}
-                          className="w-full px-3 py-2 border rounded-md min-h-[100px] resize-y"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Length (cm)</label>
-                    <input
-                      type="number"
-                          placeholder="Length (cm)"
-                      value={pkg.length}
-                      onChange={(e) => {
-                        const newPackages = [...shipmentFormData.packages];
-                        newPackages[index].length = parseFloat(e.target.value);
-                        setShipmentFormData({ ...shipmentFormData, packages: newPackages });
-                      }}
-                          className="w-full px-3 py-2 border rounded-md"
-                      required
-                    />
+                    <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">Pickup Date</label>
+                    <input type="date" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs" value={manifestFormData.pickupDate} onChange={e => setManifestFormData({ ...manifestFormData, pickupDate: e.target.value })} />
                   </div>
                   <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Width (cm)</label>
-                    <input
-                      type="number"
-                          placeholder="Width (cm)"
-                      value={pkg.width}
-                      onChange={(e) => {
-                        const newPackages = [...shipmentFormData.packages];
-                        newPackages[index].width = parseFloat(e.target.value);
-                        setShipmentFormData({ ...shipmentFormData, packages: newPackages });
-                      }}
-                          className="w-full px-3 py-2 border rounded-md"
-                      required
-                    />
-                  </div>
-                  <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
-                    <input
-                      type="number"
-                          placeholder="Height (cm)"
-                      value={pkg.height}
-                      onChange={(e) => {
-                        const newPackages = [...shipmentFormData.packages];
-                        newPackages[index].height = parseFloat(e.target.value);
-                        setShipmentFormData({ ...shipmentFormData, packages: newPackages });
-                      }}
-                          className="w-full px-3 py-2 border rounded-md"
-                      required
-                    />
+                    <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">Pickup Time</label>
+                    <input type="time" className="w-full p-3 bg-gray-50 border-b-2 font-bold text-xs" value={manifestFormData.pickupTime} onChange={e => setManifestFormData({ ...manifestFormData, pickupTime: e.target.value })} />
                   </div>
                 </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => {
-                  setShipmentFormData({
-                    ...shipmentFormData,
-                    packages: [
-                      ...shipmentFormData.packages,
-                      {
-                        quantity: 1,
-                            pieceType: '',
-                        description: '',
-                        length: 0,
-                        width: 0,
-                        height: 0,
-                        weight: 0
-                      }
-                    ]
-                  });
-                }}
-                    className="mt-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-              >
-                Add Package
-              </button>
-            </div>
+              </div>
 
-                <div className="mt-4 flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={resetShipmentForm}
-                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                    disabled={isCreating}
-                  >
-                    Cancel
+              {/* Packages Section */}
+              <div className="mt-12 pt-12 border-t border-gray-100">
+                <div className="flex justify-between items-center mb-8">
+                  <h3 className="font-black uppercase text-xs tracking-[0.3em] text-eazypost-red">Cargo Multi-Package Grid</h3>
+                  <button type="button" onClick={() => setManifestFormData({ ...manifestFormData, packages: [...manifestFormData.packages, { quantity: 1, pieceType: 'Box', description: '', length: 0, width: 0, height: 0, weight: 0 }] })} className="text-[10px] font-black uppercase text-eazypost-blue hover:text-eazypost-red transition-colors flex items-center gap-2">
+                    <Icon icon={FaPlus} /> Add Unit
                   </button>
-              <button
-                type="submit"
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 inline-flex items-center"
-                    disabled={isCreating}
-                  >
-                    {isCreating ? (
-                      <>
-                        <FaSpinner className="animate-spin -ml-1 mr-2 h-5 w-5" />
-                        Creating...
-                      </>
-                    ) : (
-                      'Create'
-                    )}
-              </button>
-            </div>
-          </form>
-        </div>
-                      </div>
-        </div>
-      )}
-
-      {/* Tracking Form Modal */}
-      {showTrackingForm && selectedShipment && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg w-full max-w-4xl my-8">
-            <div className="p-6 border-b">
-              <h2 className="text-2xl font-bold">Edit Shipment Details</h2>
                 </div>
-            <div className="p-6 max-h-[calc(90vh-8rem)] overflow-y-auto">
-              <form onSubmit={handleUpdateTracking} className="space-y-6">
-                {/* Shipper Information */}
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Shipper Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Shipper Name</label>
-                      <input
-                        type="text"
-                        value={trackingFormData.shipperName || selectedShipment.shipperName}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, shipperName: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-              </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Shipper Address</label>
-                      <input
-                        type="text"
-                        value={trackingFormData.shipperAddress || selectedShipment.shipperAddress}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, shipperAddress: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-            </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Shipper Phone</label>
-                      <input
-                        type="tel"
-                        value={trackingFormData.shipperPhone || selectedShipment.shipperPhone}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, shipperPhone: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Shipper Email</label>
-                      <input
-                        type="email"
-                        value={trackingFormData.shipperEmail || selectedShipment.shipperEmail}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, shipperEmail: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-          </div>
-        </div>
-      </div>
-
-                {/* Receiver Information */}
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Receiver Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Receiver Name</label>
-                <input
-                  type="text"
-                        value={trackingFormData.receiverName || selectedShipment.receiverName}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, receiverName: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                  required
-                />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Receiver Address</label>
-                      <input
-                        type="text"
-                        value={trackingFormData.receiverAddress || selectedShipment.receiverAddress}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, receiverAddress: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Receiver Phone</label>
-                      <input
-                        type="tel"
-                        value={trackingFormData.receiverPhone || selectedShipment.receiverPhone}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, receiverPhone: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Receiver Email</label>
-                <input
-                  type="email"
-                        value={trackingFormData.receiverEmail || selectedShipment.receiverEmail}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, receiverEmail: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                  required
-                />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Shipment Information */}
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Shipment Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Origin</label>
-                      <input
-                        type="text"
-                        value={trackingFormData.origin || selectedShipment.origin}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, origin: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-                      <input
-                        type="text"
-                        value={trackingFormData.destination || selectedShipment.destination}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, destination: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Carrier</label>
-                      <input
-                        type="text"
-                        value={trackingFormData.carrier || selectedShipment.carrier}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, carrier: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Type of Shipment</label>
-                <select
-                        value={trackingFormData.typeOfShipment || selectedShipment.typeOfShipment}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, typeOfShipment: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                  required
-                >
-                        <option value="">Select Type</option>
-                        <option value="standard">Standard</option>
-                        <option value="express">Express</option>
-                        <option value="economy">Economy</option>
-                </select>
-              </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Shipment Mode</label>
-                      <select
-                        value={trackingFormData.shipmentMode || selectedShipment.shipmentMode}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, shipmentMode: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      >
-                        <option value="">Select Mode</option>
-                        <option value="land_shipping">Land Shipping</option>
-                        <option value="air_shipping">Air Shipping</option>
-                        <option value="sea_shipping">Sea Shipping</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
-                      <input
-                        type="text"
-                        value={trackingFormData.product || selectedShipment.product}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, product: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Product Quantity</label>
-                      <input
-                        type="number"
-                        value={trackingFormData.productQuantity || selectedShipment.productQuantity}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, productQuantity: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Total Freight</label>
-                      <input
-                        type="number"
-                        value={trackingFormData.totalFreight || selectedShipment.totalFreight}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, totalFreight: parseFloat(e.target.value) })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Weight</label>
-                      <input
-                        type="number"
-                        value={trackingFormData.weight || selectedShipment.weight}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, weight: parseFloat(e.target.value) })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Payment Mode</label>
-                      <input
-                        type="text"
-                        placeholder="Enter payment method"
-                        value={trackingFormData.paymentMode || selectedShipment.paymentMode}
-                        onChange={(e) => {
-                          const value = e.target.value
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                            .join(' ');
-                          setTrackingFormData({ ...trackingFormData, paymentMode: value });
-                        }}
-                        className="w-full px-3 py-2 border rounded-md"
-                        title="Enter the preferred payment method"
-                        required
-                      />
-                    </div>
-          </div>
-        </div>
-
-                {/* Dates and Times */}
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Dates and Times</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                      <select
-                        value={trackingFormData.status || selectedShipment.status}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, status: e.target.value as Shipment['status'] })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="in_transit">In Transit</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="delayed">Delayed</option>
-                        <option value="on_hold">On Hold</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Current Location</label>
-                      <input
-                        type="text"
-                        value={trackingFormData.currentLocation || selectedShipment.currentLocation}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, currentLocation: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Expected Delivery Date</label>
-                      <input
-                        type="date"
-                        value={trackingFormData.expectedDeliveryDate || selectedShipment.expectedDeliveryDate}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, expectedDeliveryDate: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Departure Time</label>
-                      <input
-                        type="time"
-                        value={trackingFormData.departureTime || selectedShipment.departureTime}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, departureTime: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Date</label>
-                      <input
-                        type="date"
-                        value={trackingFormData.pickupDate || selectedShipment.pickupDate}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, pickupDate: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Time</label>
-                      <input
-                        type="time"
-                        value={trackingFormData.pickupTime || selectedShipment.pickupTime}
-                        onChange={(e) => setTrackingFormData({ ...trackingFormData, pickupTime: e.target.value })}
-                        className="w-full px-3 py-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Package Details */}
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Package Details</h3>
-                  {(trackingFormData.packages || selectedShipment.packages).map((pkg, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-md">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                        <input
-                          type="number"
-                          value={pkg.quantity}
-                          onChange={(e) => {
-                            const newPackages = [...(trackingFormData.packages || selectedShipment.packages)];
-                            newPackages[index].quantity = parseInt(e.target.value);
-                            setTrackingFormData({ ...trackingFormData, packages: newPackages });
-                          }}
-                          className="w-full px-3 py-2 border rounded-md"
-                          required
-                        />
+                <div className="space-y-4">
+                  {manifestFormData.packages.map((pkg, idx) => (
+                    <div key={idx} className="p-6 bg-gray-50 border-l-4 border-eazypost-blue grid grid-cols-2 md:grid-cols-7 gap-4 items-end">
+                      <div className="col-span-1">
+                        <label className="text-[9px] font-black text-gray-400 uppercase">Qty (Units)</label>
+                        <input type="number" placeholder="1" className="w-full p-2 bg-white border font-bold text-xs focus:border-eazypost-blue outline-none" value={pkg.quantity || ''} onChange={e => {
+                          const newPkgs = [...manifestFormData.packages];
+                          newPkgs[idx].quantity = Number(e.target.value);
+                          setManifestFormData({ ...manifestFormData, packages: newPkgs });
+                        }} />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Piece Type</label>
-                        <input
-                          type="text"
-                          value={pkg.pieceType}
-                          onChange={(e) => {
-                            const newPackages = [...(trackingFormData.packages || selectedShipment.packages)];
-                            newPackages[index].pieceType = e.target.value;
-                            setTrackingFormData({ ...trackingFormData, packages: newPackages });
-                          }}
-                          className="w-full px-3 py-2 border rounded-md"
-                          required
-                        />
+                      <div className="col-span-1">
+                        <label className="text-[9px] font-black text-gray-400 uppercase">Type</label>
+                        <input type="text" className="w-full p-2 bg-white border font-bold text-xs uppercase focus:border-eazypost-blue outline-none" placeholder="Box/Pallet" value={pkg.pieceType} onChange={e => {
+                          const newPkgs = [...manifestFormData.packages];
+                          newPkgs[idx].pieceType = e.target.value;
+                          setManifestFormData({ ...manifestFormData, packages: newPkgs });
+                        }} />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
-                        <input
-                          type="number"
-                          value={pkg.weight}
-                          onChange={(e) => {
-                            const newPackages = [...(trackingFormData.packages || selectedShipment.packages)];
-                            newPackages[index].weight = parseFloat(e.target.value);
-                            setTrackingFormData({ ...trackingFormData, packages: newPackages });
-                          }}
-                          className="w-full px-3 py-2 border rounded-md"
-                          required
-                        />
+                      <div className="col-span-2">
+                        <label className="text-[9px] font-black text-gray-400 uppercase">Description</label>
+                        <input type="text" className="w-full p-2 bg-white border font-bold text-xs uppercase focus:border-eazypost-blue outline-none" placeholder="Item details..." value={pkg.description} onChange={e => {
+                          const newPkgs = [...manifestFormData.packages];
+                          newPkgs[idx].description = e.target.value;
+                          setManifestFormData({ ...manifestFormData, packages: newPkgs });
+                        }} />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea
-                          placeholder="Description"
-                          value={pkg.description}
-                          onChange={(e) => {
-                            const newPackages = [...(trackingFormData.packages || selectedShipment.packages)];
-                            newPackages[index].description = e.target.value;
-                            setTrackingFormData({ ...trackingFormData, packages: newPackages });
-                          }}
-                          className="w-full px-3 py-2 border rounded-md min-h-[100px] resize-y"
-                          required
-                        />
+                      <div className="col-span-1">
+                        <label className="text-[9px] font-black text-gray-400 uppercase">Weight (KG)</label>
+                        <input type="number" placeholder="0.00" className="w-full p-2 bg-white border font-bold text-xs focus:border-eazypost-blue outline-none" value={pkg.weight || ''} onChange={e => {
+                          const newPkgs = [...manifestFormData.packages];
+                          newPkgs[idx].weight = Number(e.target.value);
+                          setManifestFormData({ ...manifestFormData, packages: newPkgs });
+                        }} />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Length (cm)</label>
-                        <input
-                          type="number"
-                          value={pkg.length}
-                          onChange={(e) => {
-                            const newPackages = [...(trackingFormData.packages || selectedShipment.packages)];
-                            newPackages[index].length = parseFloat(e.target.value);
-                            setTrackingFormData({ ...trackingFormData, packages: newPackages });
-                          }}
-                          className="w-full px-3 py-2 border rounded-md"
-                          required
-                        />
+                      <div className="col-span-1">
+                        <label className="text-[9px] font-black text-gray-400 uppercase">Dim (L*W*H CM)</label>
+                        <div className="flex gap-1">
+                          <input type="number" placeholder="L" className="w-full p-1 bg-white border text-[10px] focus:border-eazypost-blue outline-none" value={pkg.length || ''} onChange={e => { const n = [...manifestFormData.packages]; n[idx].length = Number(e.target.value); setManifestFormData({ ...manifestFormData, packages: n }); }} />
+                          <input type="number" placeholder="W" className="w-full p-1 bg-white border text-[10px] focus:border-eazypost-blue outline-none" value={pkg.width || ''} onChange={e => { const n = [...manifestFormData.packages]; n[idx].width = Number(e.target.value); setManifestFormData({ ...manifestFormData, packages: n }); }} />
+                          <input type="number" placeholder="H" className="w-full p-1 bg-white border text-[10px] focus:border-eazypost-blue outline-none" value={pkg.height || ''} onChange={e => { const n = [...manifestFormData.packages]; n[idx].height = Number(e.target.value); setManifestFormData({ ...manifestFormData, packages: n }); }} />
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Width (cm)</label>
-                        <input
-                          type="number"
-                          value={pkg.width}
-                          onChange={(e) => {
-                            const newPackages = [...(trackingFormData.packages || selectedShipment.packages)];
-                            newPackages[index].width = parseFloat(e.target.value);
-                            setTrackingFormData({ ...trackingFormData, packages: newPackages });
-                          }}
-                          className="w-full px-3 py-2 border rounded-md"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
-                        <input
-                          type="number"
-                          value={pkg.height}
-                          onChange={(e) => {
-                            const newPackages = [...(trackingFormData.packages || selectedShipment.packages)];
-                            newPackages[index].height = parseFloat(e.target.value);
-                            setTrackingFormData({ ...trackingFormData, packages: newPackages });
-                          }}
-                          className="w-full px-3 py-2 border rounded-md"
-                          required
-                        />
+                      <div className="col-span-1 flex justify-end">
+                        <button type="button" onClick={() => {
+                          const newPkgs = manifestFormData.packages.filter((_, i) => i !== idx);
+                          setManifestFormData({ ...manifestFormData, packages: newPkgs.length ? newPkgs : defaultManifestForm.packages });
+                        }} className="text-gray-300 hover:text-eazypost-red transition-colors">
+                          <Icon icon={FaTrash} />
+                        </button>
                       </div>
                     </div>
                   ))}
                 </div>
+              </div>
 
-                <div className="mt-4 flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={resetTrackingForm}
-                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                    disabled={isUpdating}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 inline-flex items-center"
-                    disabled={isUpdating}
-                  >
-                    {isUpdating ? (
-                      <>
-                        <FaSpinner className="animate-spin -ml-1 mr-2 h-5 w-5" />
-                        Updating...
-                      </>
-                    ) : (
-                      'Update'
-                    )}
-                  </button>
+              <div className="mt-12 pt-8 border-t border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-8 text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                <div className="flex justify-between border-b pb-2">
+                  <span>Est. Volumetric Weight:</span>
+                  <span className="text-eazypost-blue">{(manifestFormData.packages.reduce((acc, pkg) => acc + (pkg.length * pkg.width * pkg.height * pkg.quantity) / 5000, 0)).toFixed(2)} kg</span>
                 </div>
-              </form>
-            </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span>Total Actual Weight:</span>
+                  <span className="text-eazypost-blue">{(manifestFormData.packages.reduce((acc, pkg) => acc + (pkg.weight * pkg.quantity), 0)).toFixed(2)} kg</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span>Volume Calculation:</span>
+                  <span className="text-eazypost-blue">{(manifestFormData.packages.reduce((acc, pkg) => acc + (pkg.length * pkg.width * pkg.height * pkg.quantity) / 1000000, 0)).toFixed(3)} m³</span>
+                </div>
+              </div>
+
+              <button disabled={isProcessing} className="mt-16 w-full py-8 bg-eazypost-red text-white font-black uppercase tracking-[0.3em] hover:bg-eazypost-blue transition-all disabled:opacity-50 text-sm shadow-2xl">
+                {isProcessing ? 'SYNCHRONIZING WITH LOGISTICS NETWORK...' : 'LOCK MANIFEST & GENERATE GLOBAL TRACKING'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Tracking Update Modal */}
+      {showTrackingForm && selectedShipment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-eazypost-blue/90">
+          <div className="bg-white w-full max-w-lg p-12 shadow-2xl relative">
+            <button onClick={() => setShowTrackingForm(false)} className="absolute top-6 right-6 font-black text-gray-300 hover:text-eazypost-red">X</button>
+            <form onSubmit={handleUpdateTracking}>
+              <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-8">Update Trajectory</h2>
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">Current Position</label>
+                  <input type="text" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase" value={trackingFormData.currentLocation} onChange={e => setTrackingFormData({ ...trackingFormData, currentLocation: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">Manifest Status</label>
+                  <select className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase" value={trackingFormData.status} onChange={e => setTrackingFormData({ ...trackingFormData, status: e.target.value as any })} required>
+                    <option value="pending">PENDING</option>
+                    <option value="in_transit">IN TRANSIT</option>
+                    <option value="on_hold">ON HOLD</option>
+                    <option value="delivered">DELIVERED</option>
+                    <option value="delayed">DELAYED</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">Temporal Remarks</label>
+                  <textarea className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase h-32 resize-none" value={trackingFormData.remarks} onChange={e => setTrackingFormData({ ...trackingFormData, remarks: e.target.value })} placeholder="LOCATIONAL DATA LOGS..." />
+                </div>
+              </div>
+              <button disabled={isProcessing} className="mt-10 w-full py-5 bg-eazypost-blue text-white font-black uppercase tracking-widest text-xs hover:bg-eazypost-red transition-all shadow-lg">
+                COMMIT SYNCHRONIZATION
+              </button>
+            </form>
           </div>
         </div>
       )}

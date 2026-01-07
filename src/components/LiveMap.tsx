@@ -25,19 +25,19 @@ interface LiveMapProps {
 }
 
 const LiveMap: React.FC<LiveMapProps> = ({
-  center = { lat: 51.5074, lng: -0.1278 },
+  center = { lat: 40.7128, lng: -74.0060 }, // Default to NYC for EazyPost LLC
   zoom = 13,
   className = '',
   height = '400px',
   showMarker = true,
-  markerTitle = 'NAVISTA Headquarters',
+  markerTitle = 'EazyPost LLC Operations Center',
   showResetButton = true,
   origin,
   destination,
   currentLocation,
   showRoute = false,
-  routeColor = '#5928b1',
-  completedRouteColor = '#10b981'
+  routeColor = '#002855', // EazyPost Blue
+  completedRouteColor = '#D52B1E' // EazyPost Red
 }) => {
   const { isDarkMode } = useTheme();
   const mapRef = useRef<HTMLDivElement>(null);
@@ -61,7 +61,14 @@ const LiveMap: React.FC<LiveMapProps> = ({
     let isMounted = true;
 
     const initializeMap = async () => {
-      if (!mapRef.current) return;
+      console.log('🗺️ LiveMap: Initializing...', { center, zoom, origin, destination });
+
+      if (!mapRef.current) {
+        console.error('❌ LiveMap: mapRef.current is null');
+        return;
+      }
+
+      console.log('✅ LiveMap: Container found', mapRef.current.offsetWidth, 'x', mapRef.current.offsetHeight);
 
       if (!(window as any).L) {
         if (!document.querySelector('link[href*="leaflet.css"]')) {
@@ -111,8 +118,8 @@ const LiveMap: React.FC<LiveMapProps> = ({
       if (!isMounted || !mapRef.current) return;
 
       try {
-        if (!mapRef.current || !mapRef.current.offsetParent) {
-          console.warn('Map container not ready');
+        if (!mapRef.current) {
+          console.warn('Map container reference lost');
           return;
         }
 
@@ -123,19 +130,22 @@ const LiveMap: React.FC<LiveMapProps> = ({
           attributionControl: true
         });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 19,
+        // Use a high-performance tile provider (CartoDB Voyager) which looks cleaner and loads fast
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          attribution: '© OpenStreetMap contributors © CARTO',
+          subdomains: 'abcd',
+          maxZoom: 20,
+          crossOrigin: true
         }).addTo(mapInstanceRef.current);
 
         if (origin && destination) {
           const originIcon = L.divIcon({
             className: 'custom-div-icon',
-            html: `<div style="background-color: #10b981; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+            html: `<div style="background-color: #002855; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
             iconSize: [20, 20],
             iconAnchor: [10, 10]
           });
-          
+
           L.marker([origin.lat, origin.lng], { icon: originIcon })
             .addTo(mapInstanceRef.current)
             .bindPopup(`<b>Origin:</b> ${origin.title}`)
@@ -143,11 +153,11 @@ const LiveMap: React.FC<LiveMapProps> = ({
 
           const destIcon = L.divIcon({
             className: 'custom-div-icon',
-            html: `<div style="background-color: #ef4444; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+            html: `<div style="background-color: #D52B1E; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
             iconSize: [20, 20],
             iconAnchor: [10, 10]
           });
-          
+
           L.marker([destination.lat, destination.lng], { icon: destIcon })
             .addTo(mapInstanceRef.current)
             .bindPopup(`<b>Destination:</b> ${destination.title}`);
@@ -155,11 +165,11 @@ const LiveMap: React.FC<LiveMapProps> = ({
           if (currentLocation) {
             const currentIcon = L.divIcon({
               className: 'custom-div-icon',
-              html: `<div style="background-color: #3b82f6; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); animation: pulse 2s infinite;"></div>`,
+              html: `<div style="background-color: #D52B1E; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); animation: pulse 2s infinite;"></div>`,
               iconSize: [24, 24],
               iconAnchor: [12, 12]
             });
-            
+
             L.marker([currentLocation.lat, currentLocation.lng], { icon: currentIcon })
               .addTo(mapInstanceRef.current)
               .bindPopup(`<b>Current Location:</b> ${currentLocation.title}`);
@@ -216,7 +226,7 @@ const LiveMap: React.FC<LiveMapProps> = ({
           if (mapInstanceRef.current && mapInstanceRef.current.invalidateSize) {
             mapInstanceRef.current.invalidateSize();
           }
-        }, 100);
+        }, 500);
 
       } catch (error) {
         console.error('Error creating map:', error);
@@ -269,12 +279,12 @@ const LiveMap: React.FC<LiveMapProps> = ({
   }
 
   return (
-    <div className="relative">
+    <div className="relative h-full w-full">
       <div
         ref={mapRef}
         id={mapId.current}
         className={`w-full rounded-lg shadow-lg ${className}`}
-        style={{ height, zIndex: 1 }}
+        style={{ height, zIndex: 1, border: '2px solid red' }}
       />
       {showResetButton && (
         <button
@@ -288,10 +298,10 @@ const LiveMap: React.FC<LiveMapProps> = ({
           </svg>
         </button>
       )}
-      
+
       {(origin && destination) && (
         <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 text-sm z-10">
-          <div 
+          <div
             className="flex items-center mb-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded transition-colors"
             onClick={() => origin && zoomToLocation(origin.lat, origin.lng)}
             title="Click to zoom to origin"
@@ -303,7 +313,7 @@ const LiveMap: React.FC<LiveMapProps> = ({
             </svg>
           </div>
           {currentLocation && (
-            <div 
+            <div
               className="flex items-center mb-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded transition-colors"
               onClick={() => currentLocation && zoomToLocation(currentLocation.lat, currentLocation.lng)}
               title="Click to zoom to current location"
@@ -315,26 +325,23 @@ const LiveMap: React.FC<LiveMapProps> = ({
               </svg>
             </div>
           )}
-          <div 
+          <div
             className="flex items-center mb-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded transition-colors"
             onClick={() => destination && zoomToLocation(destination.lat, destination.lng)}
             title="Click to zoom to destination"
           >
             <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
             <span className="text-gray-700 dark:text-gray-300">Destination</span>
-            <svg className="w-3 h-3 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
           </div>
           {currentLocation && (
             <>
               <div className="flex items-center mb-1">
-                <div className="w-3 h-1 bg-green-500 rounded mr-2"></div>
-                <span className="text-gray-700 dark:text-gray-300 text-xs">Completed Route</span>
+                <div className="w-3 h-1 bg-blue-900 rounded mr-2"></div>
+                <span className="text-gray-700 dark:text-gray-300 text-xs">Primary Route</span>
               </div>
               <div className="flex items-center">
-                <div className="w-3 h-1 bg-purple-500 rounded mr-2"></div>
-                <span className="text-gray-700 dark:text-gray-300 text-xs">Remaining Route</span>
+                <div className="w-3 h-1 bg-red-600 rounded mr-2"></div>
+                <span className="text-gray-700 dark:text-gray-300 text-xs">Active Segment</span>
               </div>
             </>
           )}
