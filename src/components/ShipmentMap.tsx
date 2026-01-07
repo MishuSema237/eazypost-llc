@@ -163,11 +163,6 @@ const ShipmentMap: React.FC<ShipmentMapProps> = ({ shipment }) => {
           className="transition-all duration-700"
         />
 
-        {/* Overlay Status */}
-        <div className="absolute top-4 left-4 bg-eazypost-blue text-white p-4 shadow-2xl pointer-events-none z-20">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1">Operational Map</div>
-          <div className="text-xs font-bold text-gray-300">Live Manifest Positioning System</div>
-        </div>
       </div>
 
       <div className="p-3 bg-gray-50 border-t border-gray-200 flex justify-center">
