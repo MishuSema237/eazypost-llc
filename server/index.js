@@ -26,6 +26,9 @@ mongoose.connect(MONGO_URI)
 const shipmentSchema = new mongoose.Schema({
   trackingNumber: { type: String, required: true, unique: true },
   showMap: { type: Boolean, default: true },
+  originCoordinates: { lat: Number, lng: Number },
+  destinationCoordinates: { lat: Number, lng: Number },
+  currentCoordinates: { lat: Number, lng: Number },
   shipperName: String,
   shipperAddress: String,
   shipperPhone: String,
@@ -67,6 +70,7 @@ const shipmentSchema = new mongoose.Schema({
     date: String,
     time: String,
     location: String,
+    currentCoordinates: { lat: Number, lng: Number },
     status: String,
     updatedBy: String,
     remarks: String
@@ -202,12 +206,18 @@ app.delete('/api/shipments/:id', validateId, asyncHandler(async (req, res) => {
 }));
 
 app.patch('/api/shipments/:id/tracking', validateId, asyncHandler(async (req, res) => {
-  const { status, currentLocation, historyEntry, showMap } = req.body;
+  const { status, currentLocation, historyEntry, showMap, currentCoordinates } = req.body;
   const shipment = await Shipment.findById(req.params.id);
   if (!shipment) return res.status(404).json({ message: 'Manifest not found' });
 
   shipment.status = status;
   shipment.currentLocation = currentLocation;
+  if (currentCoordinates) {
+    shipment.currentCoordinates = currentCoordinates;
+    // Add coordinates to the history object we are about to push
+    historyEntry.currentCoordinates = currentCoordinates;
+  }
+
   if (showMap !== undefined) shipment.showMap = showMap;
   shipment.shipmentHistory.push(historyEntry);
   await shipment.save();

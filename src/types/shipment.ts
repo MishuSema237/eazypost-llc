@@ -16,12 +16,16 @@ export interface ShipmentHistory {
     status: string;
     updatedBy: string;
     remarks: string;
+    currentCoordinates?: { lat: number; lng: number; };
 }
 
 export interface Shipment {
     id: string;
     trackingNumber: string;
     showMap: boolean;
+    originCoordinates?: { lat: number; lng: number; };
+    destinationCoordinates?: { lat: number; lng: number; };
+    currentCoordinates?: { lat: number; lng: number; };
 
     // Shipper Information
     shipperName: string;

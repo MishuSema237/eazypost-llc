@@ -25,6 +25,7 @@ import {
 import AnimatedCard from '../components/animations/AnimatedCard';
 import { toast } from 'react-toastify';
 import Icon from '../components/icons/Icon';
+import { resolveLocation } from '../services/smartGeocoding';
 
 type ManifestFormData = Omit<Shipment, 'id' | 'trackingNumber' | 'createdAt' | 'updatedAt' | 'shipmentHistory'>;
 
@@ -107,12 +108,40 @@ const AdministrationAndDevelopment: React.FC = () => {
     e.preventDefault();
     setIsProcessing(true);
     try {
+      const totalActualWeight = manifestFormData.packages.reduce((acc, pkg) => acc + (pkg.weight * pkg.quantity), 0);
+
+      // Smart Geocoding Resolution
       const totalVolumetricWeight = manifestFormData.packages.reduce((acc, pkg) => acc + (pkg.length * pkg.width * pkg.height * pkg.quantity) / 5000, 0);
       const totalVolume = manifestFormData.packages.reduce((acc, pkg) => acc + (pkg.length * pkg.width * pkg.height * pkg.quantity) / 1000000, 0);
-      const totalActualWeight = manifestFormData.packages.reduce((acc, pkg) => acc + (pkg.weight * pkg.quantity), 0);
+      let finalOrigin = manifestFormData.origin;
+      let finalDestination = manifestFormData.destination;
+      let originCoords = undefined;
+      let destCoords = undefined;
+
+      try {
+        const [originRes, destRes] = await Promise.all([
+          resolveLocation(manifestFormData.origin),
+          resolveLocation(manifestFormData.destination)
+        ]);
+
+        if (originRes) {
+          finalOrigin = originRes.name;
+          originCoords = { lat: originRes.lat, lng: originRes.lng };
+        }
+        if (destRes) {
+          finalDestination = destRes.name;
+          destCoords = { lat: destRes.lat, lng: destRes.lng };
+        }
+      } catch (err) {
+        console.error('Geocoding pre-check failed', err);
+      }
 
       await createShipment({
         ...manifestFormData,
+        origin: finalOrigin,
+        destination: finalDestination,
+        originCoordinates: originCoords,
+        destinationCoordinates: destCoords,
         totalVolumetricWeight,
         totalVolume,
         totalActualWeight
@@ -136,12 +165,24 @@ const AdministrationAndDevelopment: React.FC = () => {
       const targetId = selectedShipment.id || (selectedShipment as any)._id;
       if (!targetId) throw new Error('ID_UNMAPPED');
 
+      let finalLocation = trackingFormData.currentLocation;
+      let currentCoords = undefined;
+
+      try {
+        const resolved = await resolveLocation(trackingFormData.currentLocation);
+        if (resolved) {
+          finalLocation = resolved.name;
+          currentCoords = { lat: resolved.lat, lng: resolved.lng };
+        }
+      } catch (err) { console.error('Geocoding pre-check failed', err); }
+
       await updateTrackingInfo(
         targetId,
         trackingFormData.status,
-        trackingFormData.currentLocation,
+        finalLocation,
         trackingFormData.remarks,
-        trackingFormData.showMap
+        trackingFormData.showMap,
+        currentCoords
       );
       setShowTrackingForm(false);
       loadData();

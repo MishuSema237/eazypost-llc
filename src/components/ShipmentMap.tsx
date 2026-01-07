@@ -28,6 +28,42 @@ const ShipmentMap: React.FC<ShipmentMapProps> = ({ shipment }) => {
     setError(null);
 
     try {
+      // FAST PATH: Use pre-calculated coordinates from DB if available
+      if (shipment.originCoordinates && shipment.destinationCoordinates) {
+        // Construct GeocodingResult objects from the stored coords
+        const originResult: GeocodingResult = {
+          coordinates: shipment.originCoordinates,
+          formattedAddress: shipment.origin // formatting already done by admin side
+        };
+        const destResult: GeocodingResult = {
+          coordinates: shipment.destinationCoordinates,
+          formattedAddress: shipment.destination
+        };
+
+        // Handle current location
+        let currentResult: GeocodingResult | null = null;
+        if (shipment.currentCoordinates) {
+          currentResult = {
+            coordinates: shipment.currentCoordinates,
+            formattedAddress: shipment.currentLocation
+          };
+        } else if (shipment.currentLocation && shipment.currentLocation !== shipment.origin) {
+          // Fallback: If we have text but no coords for current, try to geocode just that
+          // (This handle cases where maybe only origin/dest were migrated)
+          const results = await geocodeMultipleAddresses([shipment.currentLocation]);
+          currentResult = results[0] || null;
+        }
+
+        setGeocodedLocations({
+          origin: originResult,
+          destination: destResult,
+          current: currentResult
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // SLOW PATH: Legacy Geocoding for old shipments
       const addresses = [shipment.origin, shipment.destination];
       if (shipment.currentLocation && shipment.currentLocation !== shipment.origin) {
         addresses.push(shipment.currentLocation);
@@ -49,7 +85,7 @@ const ShipmentMap: React.FC<ShipmentMapProps> = ({ shipment }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [shipment.origin, shipment.destination, shipment.currentLocation]);
+  }, [shipment.origin, shipment.destination, shipment.currentLocation, shipment.originCoordinates, shipment.destinationCoordinates, shipment.currentCoordinates]);
 
   useEffect(() => {
     geocodeLocations();
@@ -98,48 +134,50 @@ const ShipmentMap: React.FC<ShipmentMapProps> = ({ shipment }) => {
   const mapCenter = getMapCenter();
 
   return (
-    <div className="bg-white group h-full relative border-l-8 border-eazypost-blue shadow-inner overflow-hidden">
-      <LiveMap
-        center={mapCenter}
-        zoom={6}
-        height="100%"
-        showMarker={false}
-        showResetButton={true}
-        origin={geocodedLocations.origin ? {
-          lat: geocodedLocations.origin.coordinates.lat,
-          lng: geocodedLocations.origin.coordinates.lng,
-          title: geocodedLocations.origin.formattedAddress
-        } : undefined}
-        destination={geocodedLocations.destination ? {
-          lat: geocodedLocations.destination.coordinates.lat,
-          lng: geocodedLocations.destination.coordinates.lng,
-          title: geocodedLocations.destination.formattedAddress
-        } : undefined}
-        currentLocation={geocodedLocations.current ? {
-          lat: geocodedLocations.current.coordinates.lat,
-          lng: geocodedLocations.current.coordinates.lng,
-          title: geocodedLocations.current.formattedAddress
-        } : undefined}
-        showRoute={true}
-        routeColor="#002855"
-        completedRouteColor="#D52B1E"
-        className="transition-all duration-700"
-      />
+    <div className="bg-white group h-full flex flex-col relative border-l-8 border-eazypost-blue shadow-inner">
+      <div className="relative flex-1 overflow-hidden">
+        <LiveMap
+          center={mapCenter}
+          zoom={6}
+          height="100%"
+          showMarker={false}
+          showResetButton={true}
+          origin={geocodedLocations.origin ? {
+            lat: geocodedLocations.origin.coordinates.lat,
+            lng: geocodedLocations.origin.coordinates.lng,
+            title: geocodedLocations.origin.formattedAddress
+          } : undefined}
+          destination={geocodedLocations.destination ? {
+            lat: geocodedLocations.destination.coordinates.lat,
+            lng: geocodedLocations.destination.coordinates.lng,
+            title: geocodedLocations.destination.formattedAddress
+          } : undefined}
+          currentLocation={geocodedLocations.current ? {
+            lat: geocodedLocations.current.coordinates.lat,
+            lng: geocodedLocations.current.coordinates.lng,
+            title: geocodedLocations.current.formattedAddress
+          } : undefined}
+          showRoute={true}
+          routeColor="#002855"
+          completedRouteColor="#D52B1E"
+          className="transition-all duration-700"
+        />
 
-      {/* Overlay Status */}
-      <div className="absolute top-4 left-4 bg-eazypost-blue text-white p-4 shadow-2xl pointer-events-none">
-        <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1">Operational Map</div>
-        <div className="text-xs font-bold text-gray-300">Live Manifest Positioning System</div>
+        {/* Overlay Status */}
+        <div className="absolute top-4 left-4 bg-eazypost-blue text-white p-4 shadow-2xl pointer-events-none z-20">
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1">Operational Map</div>
+          <div className="text-xs font-bold text-gray-300">Live Manifest Positioning System</div>
+        </div>
       </div>
 
-      <div className="absolute bottom-4 right-4 flex gap-2">
+      <div className="p-3 bg-gray-50 border-t border-gray-200 flex justify-center">
         <a
           href={`https://www.google.com/maps/dir/${encodeURIComponent(shipment.origin)}/${encodeURIComponent(shipment.destination)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-4 py-2 bg-eazypost-red text-white text-[10px] font-black uppercase tracking-widest hover:bg-eazypost-blue transition-all shadow-xl"
+          className="w-full text-center px-4 py-3 bg-white border-2 border-eazypost-red text-eazypost-red hover:bg-eazypost-red hover:text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-sm rounded-sm flex items-center justify-center gap-2"
         >
-          Open External Interface
+          <Icon icon={FaMapMarkerAlt} /> Open Route in Google Maps
         </a>
       </div>
     </div>

@@ -313,7 +313,7 @@ const LiveMap: React.FC<LiveMapProps> = ({
       )}
 
       {(origin && destination) && (
-        <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 text-sm z-10">
+        <div className="hidden md:block absolute bottom-4 left-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 text-sm z-10">
           <div
             className="flex items-center mb-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded transition-colors"
             onClick={() => origin && zoomToLocation(origin.lat, origin.lng)}
