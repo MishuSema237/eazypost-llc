@@ -134,7 +134,7 @@ const ShipmentMap: React.FC<ShipmentMapProps> = ({ shipment }) => {
   const mapCenter = getMapCenter();
 
   return (
-    <div className="bg-white group h-full flex flex-col relative border-l-8 border-eazypost-blue shadow-inner">
+    <div className="bg-white group h-full flex flex-col relative sm:border-l-8 border-eazypost-blue shadow-inner">
       <div className="relative flex-1 overflow-hidden">
         <LiveMap
           center={mapCenter}

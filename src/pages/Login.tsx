@@ -41,7 +41,7 @@ const Login: React.FC = () => {
 
       <div className="max-w-md w-full mx-4 relative">
         <div className="bg-white shadow-2xl overflow-hidden border-t-8 border-eazypost-blue">
-          <div className="p-10">
+          <div className="p-6 sm:p-10">
             <div className="flex justify-center mb-10 scale-125">
               <Logo />
             </div>

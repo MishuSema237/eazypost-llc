@@ -245,7 +245,7 @@ const AdministrationAndDevelopment: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-12">
+      <div className="max-w-7xl mx-auto py-12 md:p-8">
         {/* Stats / Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="bg-white p-8 border-b-4 border-eazypost-blue shadow-sm">
@@ -326,10 +326,10 @@ const AdministrationAndDevelopment: React.FC = () => {
 
       {/* Manifest Modal */}
       {showManifestForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-eazypost-blue/90">
-          <div className="bg-white w-full max-w-5xl h-[90vh] overflow-y-auto shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-eazypost-blue/90">
+          <div className="bg-white w-full max-w-5xl md:p-12 h-[90vh] overflow-y-auto shadow-2xl relative">
             <button onClick={() => setShowManifestForm(false)} className="absolute top-6 right-6 font-black text-gray-300 hover:text-eazypost-red">CLOSE [X]</button>
-            <form onSubmit={handleCreateManifest} className="p-12">
+            <form onSubmit={handleCreateManifest} className="p-6 sm:p-12">
               <h2 className="text-3xl font-black text-eazypost-blue uppercase tracking-tight mb-12 border-b-4 border-eazypost-red pb-4">Initialize Manifest</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -357,9 +357,9 @@ const AdministrationAndDevelopment: React.FC = () => {
 
               {/* Shipment Details Section */}
               <div className="mt-12 pt-12 border-t border-gray-100">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
                   <h3 className="font-black uppercase text-xs tracking-[0.3em] text-eazypost-red">Shipment Configuration</h3>
-                  <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded bg-gray-50">
+                  <div className="flex  items-center space-x-3 p-3 border border-gray-200 rounded bg-gray-50">
                     <input
                       type="checkbox"
                       checked={manifestFormData.showMap}
@@ -526,10 +526,10 @@ const AdministrationAndDevelopment: React.FC = () => {
       {/* Tracking Update Modal */}
       {showTrackingForm && selectedShipment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-eazypost-blue/90">
-          <div className="bg-white w-full max-w-lg p-12 shadow-2xl relative">
+          <div className="bg-white w-full max-w-lg p-4 md:p-12 shadow-2xl relative">
             <button onClick={() => setShowTrackingForm(false)} className="absolute top-6 right-6 font-black text-gray-300 hover:text-eazypost-red">X</button>
             <form onSubmit={handleUpdateTracking}>
-              <h2 className="text-2xl font-black text-eazypost-blue uppercase tracking-tight mb-8">Update Trajectory</h2>
+              <h2 className="text-xl font-black text-eazypost-blue uppercase tracking-tight mb-8">Update Trajectory</h2>
               <div className="space-y-6">
                 <div>
                   <label className="text-[10px] font-black uppercase text-gray-400 block mb-2">Current Position</label>
