@@ -74,8 +74,12 @@ const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-4">
               <li className="flex items-start space-x-3 text-gray-300">
+                <Icon icon={FaPhone} size={16} className="text-eazypost-red mt-1" />
+                <a href="tel:+19453924598" className="hover:text-eazypost-red text-sm transition-colors">+1 (945) 392-4598</a>
+              </li>
+              <li className="flex items-start space-x-3 text-gray-300">
                 <Icon icon={FaEnvelope} size={16} className="text-eazypost-red mt-1" />
-                <a href="mailto:support@eazypost.com" className="hover:text-eazypost-red text-sm transition-colors">support@eazypost.com</a>
+                <a href="mailto:eazypost@gmail.com" className="hover:text-eazypost-red text-sm transition-colors">eazypost@gmail.com</a>
               </li>
               <li className="flex items-start space-x-3 text-gray-300">
                 <Icon icon={FaMapMarkerAlt} size={16} className="text-eazypost-red mt-1" />

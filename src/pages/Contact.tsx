@@ -138,7 +138,7 @@ const Contact: React.FC = () => {
                     </div>
                     <div>
                       <h4 className="font-black text-eazypost-blue uppercase tracking-widest text-xs mb-1">Electronic Mail</h4>
-                      <p className="text-lg font-bold text-gray-700">support@eazypost.com</p>
+                      <p className="text-lg font-bold text-gray-700">eazypost@gmail.com</p>
                     </div>
                   </div>
                 </AnimatedCard>
@@ -146,11 +146,11 @@ const Contact: React.FC = () => {
                 <AnimatedCard animation="fade" delay="100ms">
                   <div className="flex items-start gap-6 group">
                     <div className="flex-shrink-0 w-12 h-12 bg-gray-50 border border-gray-100 flex items-center justify-center text-eazypost-red group-hover:bg-eazypost-blue group-hover:text-white transition-all">
-                      <Icon icon={FaHeadset} className="text-xl" />
+                      <Icon icon={FaPhone} className="text-xl" />
                     </div>
                     <div>
-                      <h4 className="font-black text-eazypost-blue uppercase tracking-widest text-xs mb-1">Global Support</h4>
-                      <p className="text-lg font-bold text-gray-700">Available 24/7 via Portal</p>
+                      <h4 className="font-black text-eazypost-blue uppercase tracking-widest text-xs mb-1">Phone Line</h4>
+                      <p className="text-lg font-bold text-gray-700">+1 (945) 392-4598</p>
                     </div>
                   </div>
                 </AnimatedCard>

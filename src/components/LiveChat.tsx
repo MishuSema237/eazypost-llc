@@ -1,115 +1,49 @@
 import React, { useEffect } from 'react';
 
-// TypeScript declarations for Tawk.to API
+// TypeScript declarations for Smartsupp API
 declare global {
   interface Window {
-    Tawk_API?: {
-      onLoad: () => void;
-      setAttributes: (attributes: { name: string; email: string; role: string }) => void;
-      sendMessage: (message: string) => void;
-      showWidget: () => void;
-      hideWidget: () => void;
-      toggleVisibility: () => void;
-    };
+    _smartsupp?: any;
+    smartsupp?: any;
   }
 }
 
 const LiveChat: React.FC = () => {
-  // Welcome message options
-  const welcomeMessages = React.useMemo(() => [
-    "Hello! 👋 Welcome to EazyPost LLC! I'm here to help you with your manifest tracking, logistics questions, or any other inquiries. How can I assist you today?",
-    "Hi there! 🚚 Welcome to EazyPost LLC Support Terminal. Need help locating your consignment or have questions about routing? I'm here to assist!",
-    "Welcome to the EazyPost LLC Global Operations Center! 📦 I can help you track manifests, check delivery status, or answer any industrial logic questions. How can I help?",
-    "Hello! 🎉 Thanks for choosing EazyPost LLC! I'm here to ensure your logistics experience is frictionless. How can I assist you today?"
-  ], []);
-
-  // Suggested quick reply buttons
-  const quickReplies = React.useMemo(() => [
-    "Track Manifest",
-    "Check Consignment Status",
-    "Logistics Specs",
-    "Report Discrepancy",
-    "Contact Operations"
-  ], []);
-
-  // Get random welcome message
-  const getRandomWelcomeMessage = React.useCallback(() => {
-    return welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
-  }, [welcomeMessages]);
-
-  // Add quick reply buttons after welcome message
-  const addQuickReplies = React.useCallback(() => {
-    if (window.Tawk_API) {
-      setTimeout(() => {
-        // Add quick reply buttons
-        quickReplies.forEach((reply, index) => {
-          setTimeout(() => {
-            window.Tawk_API?.sendMessage(`[Quick Reply ${index + 1}] ${reply}`);
-          }, (index + 1) * 500); // Stagger the buttons
-        });
-      }, 2000); // Show after welcome message
-    }
-  }, [quickReplies]);
-
   useEffect(() => {
-    // Remove any existing Tawk.to script to avoid duplicates
-    const existingScript = document.querySelector('script[src*="tawk.to"]');
-    if (existingScript) {
-      existingScript.remove();
-    }
+    // Configure Smartsupp
+    window._smartsupp = window._smartsupp || {};
+    window._smartsupp.key = '78ef9ef7fb476eabd54f433a395f296a4628cbc0';
 
-    // Load Tawk.to script using the provided script
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.async = true;
-    script.src = 'https://embed.tawk.to/68b823c181805619277a1df5/1j47knbl1';
-    script.charset = 'UTF-8';
-    script.setAttribute('crossorigin', '*');
-
-    script.onload = () => {
-      // Wait a bit for Tawk_API to be available
-      setTimeout(() => {
-        if (window.Tawk_API) {
-          // Set welcome message
-          window.Tawk_API.onLoad = function () {
-            try {
-              // Set visitor attributes
-              window.Tawk_API?.setAttributes({
-                'name': 'EazyPost LLC Client',
-                'email': '',
-                'role': 'customer'
-              });
-
-              // Send welcome message with slight delay for better UX
-              setTimeout(() => {
-                window.Tawk_API?.sendMessage(getRandomWelcomeMessage());
-                // Add quick reply buttons after welcome message
-                addQuickReplies();
-              }, 1000);
-            } catch (error) {
-              console.error('Error setting up Tawk.to:', error);
-            }
-          };
+    // Load Smartsupp script
+    if (!window.smartsupp) {
+      (function (d) {
+        var s, c, o = (window.smartsupp = function () {
+          o._.push(arguments);
+        }) as any;
+        o._ = [];
+        s = d.getElementsByTagName('script')[0];
+        c = d.createElement('script');
+        c.type = 'text/javascript';
+        c.charset = 'utf-8';
+        c.async = true;
+        c.src = 'https://www.smartsuppchat.com/loader.js?';
+        if (s && s.parentNode) {
+          s.parentNode.insertBefore(c, s);
+        } else {
+          d.head.appendChild(c);
         }
-      }, 1000);
-    };
-
-    script.onerror = (error) => {
-      console.error('Failed to load Tawk.to script:', error);
-    };
-
-    document.head.appendChild(script);
+      })(document);
+    }
 
     // Cleanup function
     return () => {
-      const existing = document.querySelector('script[src*="tawk.to"]');
-      if (existing) {
-        existing.remove();
-      }
+      // We generally don't remove the script as it might be shared, 
+      // but if we navigated away we might want to hide it.
+      // Smartsupp doesn't have a simple 'remove' but we can leave it be 
+      // as this is a global tracking script usually.
     };
-  }, [addQuickReplies, getRandomWelcomeMessage]);
+  }, []);
 
-  // Return null since we're using Tawk.to's built-in widget
   return null;
 };
 
