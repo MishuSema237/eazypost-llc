@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config({ path: '.env.local' });
@@ -95,10 +95,23 @@ const userSchema = new mongoose.Schema({
 const Shipment = mongoose.model('Shipment', shipmentSchema);
 const User = mongoose.model('User', userSchema);
 
-// --- Resend Setup ---
+// --- Nodemailer Setup ---
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = process.env.RESEND_FROM || 'onboarding@resend.dev';
+let transporter = null;
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  });
+}
 
 // Helper for sending professional emails
 const sendProfessionalEmail = async (to, subject, data, type) => {
@@ -136,9 +149,13 @@ const sendProfessionalEmail = async (to, subject, data, type) => {
     `;
   }
 
-  await resend.emails.send({
-    from: FROM_EMAIL,
-    to: [to],
+  if (!transporter) {
+    console.warn('[EMAIL] SMTP not configured, skipping email send');
+    return;
+  }
+  await transporter.sendMail({
+    from: `"EazyPost LLC Operations" <${process.env.SMTP_USER}>`,
+    to,
     subject: `[LOGISTICS] ${subject}`,
     html: htmlContent,
   });
@@ -235,7 +252,7 @@ app.post('/api/users/validate', asyncHandler(async (req, res) => {
 app.post('/api/send-email', asyncHandler(async (req, res) => {
   const { type, data } = req.body;
   if (type === 'contact') {
-    await sendProfessionalEmail('eazypostllc@gmail.com', `Contact Form: ${data.subject}`, data, 'contact');
+    await sendProfessionalEmail(process.env.SMTP_USER, `Contact Form: ${data.subject}`, data, 'contact');
   } else if (type === 'shipper') {
     await sendProfessionalEmail(data.shipperEmail, 'Manifest Initialized', data, 'shipment');
   } else if (type === 'receiver') {
