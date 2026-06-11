@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaUser, FaPaperPlane, FaSpinner, FaHeadset } from 'react-icons/fa';
+import { FaEnvelope, FaMapMarkerAlt, FaClock, FaUser, FaPaperPlane, FaSpinner, FaHeadset } from 'react-icons/fa';
 import AnimatedCard from '../components/animations/AnimatedCard';
 import Icon from '../components/icons/Icon';
 import { sendContactFormEmail } from '../services/emailService';
@@ -138,19 +138,7 @@ const Contact: React.FC = () => {
                     </div>
                     <div>
                       <h4 className="font-black text-eazypost-blue uppercase tracking-widest text-xs mb-1">Electronic Mail</h4>
-                      <p className="text-lg font-bold text-gray-700">eazypost@gmail.com</p>
-                    </div>
-                  </div>
-                </AnimatedCard>
-
-                <AnimatedCard animation="fade" delay="100ms">
-                  <div className="flex items-start gap-6 group">
-                    <div className="flex-shrink-0 w-12 h-12 bg-gray-50 border border-gray-100 flex items-center justify-center text-eazypost-red group-hover:bg-eazypost-blue group-hover:text-white transition-all">
-                      <Icon icon={FaPhone} className="text-xl" />
-                    </div>
-                    <div>
-                      <h4 className="font-black text-eazypost-blue uppercase tracking-widest text-xs mb-1">Phone Line</h4>
-                      <p className="text-lg font-bold text-gray-700">+1 (945) 392-4598</p>
+                      <p className="text-lg font-bold text-gray-700">eazypostllc@gmail.com</p>
                     </div>
                   </div>
                 </AnimatedCard>

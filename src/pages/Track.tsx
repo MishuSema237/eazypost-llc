@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getShipmentByTracking, Shipment } from '../services/shipmentService';
 import { toast } from 'react-toastify';
 import {
@@ -9,7 +10,6 @@ import {
   FaMapMarkerAlt,
   FaCalendarAlt,
   FaUser,
-  FaPhone,
   FaEnvelope,
   FaWeightHanging,
   FaClock,
@@ -25,12 +25,18 @@ import {
   FaCopy,
   FaShieldAlt,
   FaGlobe,
+  FaBell,
+  FaSatellite,
+  FaQrcode,
+  FaCloudUploadAlt,
+  FaMobileAlt,
 } from 'react-icons/fa';
 import Icon from '../components/icons/Icon';
 import AnimatedCard from '../components/animations/AnimatedCard';
 import ShipmentMap from '../components/ShipmentMap';
 
 const Track: React.FC = () => {
+  const navigate = useNavigate();
   const [trackingNumber, setTrackingNumber] = useState('');
   const [shipment, setShipment] = useState<Shipment | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -209,26 +215,78 @@ const Track: React.FC = () => {
                 </div>
               </div>
 
-              {/* Package Summary */}
+              {/* Shipment Details */}
               <div className="bg-white border border-gray-100 p-8 shadow-sm">
-                <h3 className="text-lg font-black text-eazypost-blue uppercase tracking-widest border-b border-gray-100 pb-4 mb-6">Cargo Manifest</h3>
+                <h3 className="text-lg font-black text-eazypost-blue uppercase tracking-widest border-b border-gray-100 pb-4 mb-6">Shipment Details</h3>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-400 uppercase font-black">Quantity</span>
-                    <span className="font-bold text-eazypost-blue">{shipment.packages.length} Units</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-400 uppercase font-black">Gross Weight</span>
-                    <span className="font-bold text-eazypost-blue">{shipment.packages.reduce((t, p) => t + p.weight, 0)} KG</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-400 uppercase font-black">Carrier</span>
-                    <span className="font-bold text-eazypost-red">{shipment.carrier}</span>
+                    <span className="font-bold text-eazypost-blue">{shipment.carrier}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-400 uppercase font-black">Transport</span>
+                    <span className="text-gray-400 uppercase font-black">Mode</span>
                     <span className="font-bold text-eazypost-blue uppercase tracking-wide">{shipment.shipmentMode}</span>
                   </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400 uppercase font-black">Type</span>
+                    <span className="font-bold text-eazypost-blue uppercase tracking-wide">{shipment.typeOfShipment}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400 uppercase font-black">Payment</span>
+                    <span className="font-bold text-eazypost-blue uppercase">{shipment.paymentMode}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400 uppercase font-black">Product</span>
+                    <span className="font-bold text-eazypost-blue uppercase text-xs text-right max-w-[60%]">{shipment.product}{shipment.productQuantity ? ` (${shipment.productQuantity} units)` : ''}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400 uppercase font-black">Total Freight</span>
+                    <span className="font-bold text-eazypost-blue">${shipment.totalFreight?.toLocaleString() || '0'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400 uppercase font-black">Expected Delivery</span>
+                    <span className="font-bold text-eazypost-red">{shipment.expectedDeliveryDate || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Package Details */}
+              <div className="bg-white border border-gray-100 p-8 shadow-sm">
+                <h3 className="text-lg font-black text-eazypost-blue uppercase tracking-widest border-b border-gray-100 pb-4 mb-6">Package Details</h3>
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400 uppercase font-black">Total Packages</span>
+                    <span className="font-bold text-eazypost-blue">{shipment.packages.length}</span>
+                  </div>
+                  {shipment.packages.map((pkg, idx) => (
+                    <div key={idx} className="bg-gray-50 p-4 border-l-4 border-eazypost-blue">
+                      <div className="text-[10px] uppercase font-black text-eazypost-red mb-3 tracking-[0.2em]">Package {idx + 1}</div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-400 uppercase font-black text-[10px] block">Type</span>
+                          <span className="font-bold text-eazypost-blue uppercase">{pkg.pieceType}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 uppercase font-black text-[10px] block">Quantity</span>
+                          <span className="font-bold text-eazypost-blue">{pkg.quantity}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 uppercase font-black text-[10px] block">Weight</span>
+                          <span className="font-bold text-eazypost-blue">{pkg.weight} kg</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 uppercase font-black text-[10px] block">Dimensions</span>
+                          <span className="font-bold text-eazypost-blue">{pkg.length && pkg.width && pkg.height ? `${pkg.length} x ${pkg.width} x ${pkg.height} cm` : '-'}</span>
+                        </div>
+                        {pkg.description && (
+                          <div className="col-span-2">
+                            <span className="text-gray-400 uppercase font-black text-[10px] block">Description</span>
+                            <span className="font-bold text-eazypost-blue uppercase text-xs">{pkg.description}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -248,9 +306,22 @@ const Track: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Need Help */}
+              <div className="bg-eazypost-blue p-8 text-white text-center">
+                <h3 className="text-lg font-black uppercase tracking-widest mb-3">Need Help?</h3>
+                <p className="text-gray-300 text-sm mb-6">Contact our support team for assistance with your shipment.</p>
+                <button
+                  onClick={() => { navigate('/contact'); window.scrollTo(0, 0); }}
+                  className="inline-block px-8 py-4 bg-eazypost-red text-white font-black uppercase tracking-widest text-xs hover:bg-opacity-90 transition-all shadow-xl"
+                >
+                  Contact Support
+                </button>
+              </div>
             </div>
           </div>
         ) : (
+          <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 py-12">
             {[
               { icon: FaShieldAlt, title: "Secure Protocol", desc: "Enterprise-grade encryption for manifest protection." },
@@ -266,6 +337,76 @@ const Track: React.FC = () => {
               </AnimatedCard>
             ))}
           </div>
+
+          <div className="mt-20">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-black text-eazypost-blue uppercase tracking-tight">Tracking <span className="text-eazypost-red">Intelligence</span></h2>
+              <div className="w-20 h-1 bg-eazypost-red mx-auto mt-4"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "Multi-Modal Visibility",
+                  desc: "Single-pane view across air, ocean, and ground shipments. Track intermodal transfers and handoffs between carriers in real time with unified status updates.",
+                  stat: "99.97%",
+                  statLabel: "Data Accuracy"
+                },
+                {
+                  title: "Predictive ETAs",
+                  desc: "Machine learning algorithms analyze historical route data, weather patterns, and customs clearance times to deliver continuously refined delivery estimates throughout transit.",
+                  stat: "±2.5 hrs",
+                  statLabel: "Avg. Prediction Variance"
+                },
+                {
+                  title: "Exception Alerts",
+                  desc: "Automated notifications for delays, route deviations, temperature breaches, and customs holds. Configurable alert thresholds for proactive exception management.",
+                  stat: "< 60 sec",
+                  statLabel: "Alert Response Time"
+                },
+                {
+                  title: "Audit Trail Logging",
+                  desc: "Immutable timestamped records of every scan, location ping, status change, and user interaction. Full chain-of-custody documentation for compliance and dispute resolution.",
+                  stat: "5 Years",
+                  statLabel: "Data Retention"
+                }
+              ].map((item, idx) => (
+                <div key={idx} className="bg-white border border-gray-100 p-8 shadow-sm hover:shadow-md transition-shadow flex flex-col sm:flex-row gap-6">
+                  <div className="flex-shrink-0 text-center sm:text-left">
+                    <div className="text-3xl font-black text-eazypost-red">{item.stat}</div>
+                    <div className="text-[10px] text-gray-400 uppercase tracking-widest font-black mt-1">{item.statLabel}</div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-eazypost-blue uppercase tracking-tight mb-3">{item.title}</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-20">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-black text-eazypost-blue uppercase tracking-tight">Integrated <span className="text-eazypost-red">Technologies</span></h2>
+              <div className="w-20 h-1 bg-eazypost-red mx-auto mt-4"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[
+                { icon: FaSatellite, title: "Satellite GPS", desc: "Real-time geofencing and location intelligence across global transit routes." },
+                { icon: FaQrcode, title: "QR-Barcode Sync", desc: "Scan-based manifest verification at every checkpoint with instant data relay." },
+                { icon: FaCloudUploadAlt, title: "Cloud Platform", desc: "Scalable cloud infrastructure handling 50M+ daily tracking data points." },
+                { icon: FaMobileAlt, title: "Mobile Gateway", desc: "Native push notifications and mobile-optimized tracking interface." }
+              ].map((item, idx) => (
+                <div key={idx} className="bg-gray-50 p-8 text-center border-b-4 border-eazypost-blue hover:border-eazypost-red transition-all group">
+                  <div className="w-16 h-16 bg-eazypost-blue text-white flex items-center justify-center mx-auto mb-6 group-hover:bg-eazypost-red transition-colors">
+                    <Icon icon={item.icon} className="text-2xl" />
+                  </div>
+                  <h3 className="text-sm font-black text-eazypost-blue uppercase tracking-tight mb-3">{item.title}</h3>
+                  <p className="text-xs text-gray-600 leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          </>
         )}
       </div>
     </div>

@@ -3,10 +3,278 @@ import { Link } from 'react-router-dom';
 import {
   FaPlane, FaShip, FaTruck, FaWarehouse, FaCheckCircle,
   FaGlobe, FaShieldAlt, FaHeadset, FaChartLine, FaArrowRight,
-  FaSearch, FaBoxOpen, FaHandshake, FaAward, FaStar, FaQuoteLeft
+  FaSearch, FaBoxOpen, FaHandshake, FaAward, FaStar, FaQuoteLeft,
+  FaHospital, FaCar, FaShoppingCart, FaApple, FaClock, FaFileContract,
+  FaLaptop, FaCogs, FaMobileAlt, FaCloud, FaRocket
 } from 'react-icons/fa';
 import AnimatedCard from '../components/animations/AnimatedCard';
 import Icon from '../components/icons/Icon';
+
+const testimonials = [
+  {
+    text: "EazyPost LLC has transformed our international distribution. Their professionalism and adherence to timelines are unmatched in the industry.",
+    author: "Jonathan Reed",
+    role: "Director, Global Retail Inc."
+  },
+  {
+    text: "The real-time tracking accuracy provided by EazyPost gives us and our clients true peace of mind. Truly a top-tier courier service.",
+    author: "Sarah Jenkins",
+    role: "Logistics Manager, TechFlow"
+  },
+  {
+    text: "EazyPost handles our entire North American supply chain. Their reliability has cut our delays by 80% since switching.",
+    author: "Marcus Chen",
+    role: "VP Supply Chain, NovaMed Corp"
+  },
+  {
+    text: "We ship over 10,000 units monthly through EazyPost. Zero lost packages, zero complaints from our customers.",
+    author: "Amara Okafor",
+    role: "Operations Director, Lagos Trade Hub"
+  },
+  {
+    text: "The customs clearance support from EazyPost is exceptional. They navigate complex regulations effortlessly.",
+    author: "Dmitri Volkov",
+    role: "Import Manager, EuroTech GmbH"
+  },
+  {
+    text: "EazyPost's API integration with our warehouse system was seamless. Real-time tracking at our fingertips.",
+    author: "Priya Sharma",
+    role: "CTO, BombayMart Online"
+  },
+  {
+    text: "Their dedicated account management team anticipates our needs before we even raise a request. Outstanding service.",
+    author: "Carlos Mendez",
+    role: "CEO, Andean Logistics Group"
+  },
+  {
+    text: "We've partnered with EazyPost for three years and they consistently deliver ahead of schedule. A trusted ally.",
+    author: "Fatima Al-Rashid",
+    role: "Supply Chain Lead, Gulf Express"
+  },
+  {
+    text: "From Sydney to Singapore, EazyPost delivers with precision. Their tracking technology sets the industry standard.",
+    author: "James Whitfield",
+    role: "Logistics Director, Oceana Trading"
+  },
+  {
+    text: "EazyPost helped us scale from local to international shipping in under six months. Invaluable partnership.",
+    author: "Yuki Tanaka",
+    role: "Founder, Tokyo Craft Exports"
+  },
+  {
+    text: "Their cold chain logistics are impeccable. Temperature-sensitive shipments arrive in perfect condition every time.",
+    author: "Dr. Anna Kowalski",
+    role: "Pharma Logistics, BioCare Europe"
+  },
+  {
+    text: "EazyPost's pricing transparency is refreshing. No hidden fees, no surprises, just reliable service.",
+    author: "Robert Osei",
+    role: "Finance Director, Accra Merchants"
+  },
+  {
+    text: "We reduced our shipping insurance claims by 95% after moving to EazyPost. Their handling standards are exceptional.",
+    author: "Isabella Rossi",
+    role: "Risk Manager, Milano Fashion House"
+  },
+  {
+    text: "The EazyPost team goes above and beyond during peak seasons. They scaled with us when we needed it most.",
+    author: "Ahmed Hassan",
+    role: "E-commerce Director, Cairo Digital"
+  },
+  {
+    text: "Their global network coverage in Southeast Asia is unmatched. Our expansion there was made possible by EazyPost.",
+    author: "Linh Nguyen",
+    role: "Regional Manager, Saigon Shipping"
+  },
+  {
+    text: "EazyPost's sustainability initiatives align with our green logistics goals. Carbon-neutral shipping is the future.",
+    author: "Elena Petrova",
+    role: "Sustainability Officer, GreenLogix"
+  },
+  {
+    text: "Trust is everything in logistics. EazyPost has earned ours many times over with consistent excellence.",
+    author: "David Thompson",
+    role: "CEO, Thompson Global Enterprises"
+  }
+];
+
+const testimonialsFrench = [
+  {
+    text: "EazyPost LLC a transformé notre distribution internationale. Leur professionnalisme et leur respect des délais sont inégalés dans l'industrie.",
+    author: "Jonathan Reed",
+    role: "Directeur, Global Retail Inc."
+  },
+  {
+    text: "La précision du suivi en temps réel fourni par EazyPost nous apporte une tranquillité d'esprit absolue. Un service de messagerie de premier ordre.",
+    author: "Sarah Jenkins",
+    role: "Responsable Logistique, TechFlow"
+  },
+  {
+    text: "EazyPost gère l'ensemble de notre chaîne d'approvisionnement nord-américaine. Leur fiabilité a réduit nos retards de 80%.",
+    author: "Marcus Chen",
+    role: "VP Chaîne d'Approvisionnement, NovaMed Corp"
+  },
+  {
+    text: "Nous expédions plus de 10 000 unités par mois avec EazyPost. Zéro colis perdu, zéro réclamation.",
+    author: "Amara Okafor",
+    role: "Directrice des Opérations, Lagos Trade Hub"
+  },
+  {
+    text: "Le service de dédouanement d'EazyPost est exceptionnel. Ils naviguent dans les réglementations complexes sans effort.",
+    author: "Dmitri Volkov",
+    role: "Responsable Import, EuroTech GmbH"
+  },
+  {
+    text: "L'intégration API d'EazyPost avec notre système d'entrepôt a été parfaite. Le suivi en temps réel à portée de main.",
+    author: "Priya Sharma",
+    role: "CTO, BombayMart Online"
+  },
+  {
+    text: "Leur équipe de gestion de compte anticipe nos besoins avant même que nous les demandions. Un service remarquable.",
+    author: "Carlos Mendez",
+    role: "CEO, Andean Logistics Group"
+  },
+  {
+    text: "Nous collaborons avec EazyPost depuis trois ans et ils livrent systématiquement en avance. Un allié de confiance.",
+    author: "Fatima Al-Rashid",
+    role: "Responsable Chaîne d'Approvisionnement, Gulf Express"
+  },
+  {
+    text: "De Sydney à Singapour, EazyPost livre avec précision. Leur technologie de suivi établit la norme de l'industrie.",
+    author: "James Whitfield",
+    role: "Directeur Logistique, Oceana Trading"
+  },
+  {
+    text: "EazyPost nous a aidés à passer de l'expédition locale à internationale en moins de six mois. Un partenariat inestimable.",
+    author: "Yuki Tanaka",
+    role: "Fondateur, Tokyo Craft Exports"
+  },
+  {
+    text: "Leur logistique de chaîne du froid est impeccable. Les expéditions sensibles à la température arrivent en parfait état.",
+    author: "Dr. Anna Kowalski",
+    role: "Logistique Pharmaceutique, BioCare Europe"
+  },
+  {
+    text: "La transparence tarifaire d'EazyPost est rafraîchissante. Pas de frais cachés, pas de surprises, un service fiable.",
+    author: "Robert Osei",
+    role: "Directeur Financier, Accra Merchants"
+  },
+  {
+    text: "Nous avons réduit nos réclamations d'assurance de 95% après avoir choisi EazyPost. Leurs normes de manutention sont exceptionnelles.",
+    author: "Isabella Rossi",
+    role: "Responsable Risques, Milano Fashion House"
+  },
+  {
+    text: "L'équipe EazyPost se dépasse pendant les saisons de pointe. Ils ont évolué avec nous quand nous en avions le plus besoin.",
+    author: "Ahmed Hassan",
+    role: "Directeur E-commerce, Cairo Digital"
+  },
+  {
+    text: "Leur couverture réseau en Asie du Sud-Est est inégalée. Notre expansion là-bas a été rendue possible par EazyPost.",
+    author: "Linh Nguyen",
+    role: "Responsable Régional, Saigon Shipping"
+  },
+  {
+    text: "Les initiatives de durabilité d'EazyPost s'alignent sur nos objectifs logistiques verts. L'expédition carbone-neutre est l'avenir.",
+    author: "Elena Petrova",
+    role: "Responsable Développement Durable, GreenLogix"
+  },
+  {
+    text: "La confiance est primordiale en logistique. EazyPost a gagné la nôtre de nombreuses fois par son excellence constante.",
+    author: "David Thompson",
+    role: "CEO, Thompson Global Enterprises"
+  }
+];
+
+const testimonialsAustralian = [
+  {
+    text: "EazyPost has revolutionised our supply chain down under. Their reliability across the Pacific is second to none.",
+    author: "Liam O'Brien",
+    role: "Supply Chain Director, AusTrade Logistics"
+  },
+  {
+    text: "The visibility EazyPost provides on our shipments from Sydney to the world is outstanding. Game changer for our exports.",
+    author: "Charlotte Bennett",
+    role: "Export Manager, BlueScope Trading"
+  },
+  {
+    text: "We've been using EazyPost for our rural and remote deliveries across the Outback. They never miss a drop-off.",
+    author: "Jack Thompson",
+    role: "Operations Manager, Remote Logistics AU"
+  },
+  {
+    text: "EazyPost's customs expertise made our expansion into Asian markets effortless. Highly recommend their services.",
+    author: "Sophie Williams",
+    role: "International Trade Lead, Koala Exports"
+  },
+  {
+    text: "Their warehousing and distribution network across Australia is world-class. Seamless integration with our systems.",
+    author: "Harper Jones",
+    role: "CEO, Pacific E-Commerce"
+  },
+  {
+    text: "EazyPost delivered our largest consignment ahead of schedule during peak season. Absolutely reliable partner.",
+    author: "Oliver Taylor",
+    role: "Logistics Director, Brisbane Goods"
+  },
+  {
+    text: "The real-time tracking and proactive notifications keep our clients informed every step of the way. Brilliant service.",
+    author: "Amelia Brown",
+    role: "Client Relations Manager, Sydney Logistics Hub"
+  },
+  {
+    text: "From Melbourne to Malaysia, EazyPost handles our cross-border freight with unmatched efficiency.",
+    author: "Noah Wilson",
+    role: "Freight Manager, Southern Cross Shipping"
+  },
+  {
+    text: "Their team's local knowledge of Australian customs regulations saved us thousands in delays. Invaluable expertise.",
+    author: "Mia Anderson",
+    role: "Compliance Officer, DownUnder Trade"
+  },
+  {
+    text: "EazyPost helped us build a reliable cold chain for our premium produce exports. Everything arrives fresh.",
+    author: "Thomas Martin",
+    role: "Cold Chain Manager, Fresh Harvest AU"
+  },
+  {
+    text: "The dedicated account management and personalised support sets EazyPost apart from every other courier we've tried.",
+    author: "Isla White",
+    role: "Operations Director, Adelaide Commerce"
+  },
+  {
+    text: "EazyPost's technology platform integrates perfectly with our inventory management. Tracking is seamless and accurate.",
+    author: "Zac Harris",
+    role: "CTO, TechLogix Australia"
+  },
+  {
+    text: "We rely on EazyPost for time-critical medical supply deliveries. They have never let us down, not once.",
+    author: "Dr. Emily Clarke",
+    role: "Medical Logistics, HealthLink Australia"
+  },
+  {
+    text: "Their global network combined with local Australian expertise is the perfect formula for international shipping success.",
+    author: "William Walker",
+    role: "Director, Walker International"
+  },
+  {
+    text: "EazyPost's sustainability commitment matches our own. It's great to partner with a logistics company that cares.",
+    author: "Grace Johnson",
+    role: "Sustainability Officer, Green Freight AU"
+  },
+  {
+    text: "The transition to EazyPost was smooth and the results were immediate. Our delivery times improved dramatically.",
+    author: "Henry King",
+    role: "E-commerce Director, Perth Retail Co"
+  },
+  {
+    text: "Best logistics partner we've had in 15 years of business. EazyPost sets the benchmark for courier services in Australia.",
+    author: "Ruby Davis",
+    role: "CEO, Davis & Co Trading"
+  }
+];
+
+const allTestimonials = [...testimonials, ...testimonialsFrench, ...testimonialsAustralian];
 
 const Home: React.FC = () => {
   return (
@@ -120,6 +388,36 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* Service Guarantees - Strip Layout */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-black text-eazypost-blue uppercase tracking-tight">Service <span className="text-eazypost-red">Guarantees</span></h2>
+            <div className="w-20 h-1 bg-eazypost-red mx-auto mt-4"></div>
+          </div>
+          <div className="space-y-6">
+            {[
+              { stat: "99.9%", statLabel: "On-Time Delivery", icon: FaClock, desc: "Guaranteed departure and arrival windows. Late deliveries trigger automated service credits — no paperwork required.", accent: "border-eazypost-red" },
+              { stat: "Zero Loss", statLabel: "Cargo Integrity", icon: FaShieldAlt, desc: "End-to-end chain-of-custody with tamper-evident seals and full insurance coverage included on every shipment.", accent: "border-eazypost-blue" },
+              { stat: "100% Match", statLabel: "Rate Transparency", icon: FaFileContract, desc: "All-inclusive pricing with no hidden fees. Final invoice matches your quote within 2% or we refund the difference.", accent: "border-eazypost-red" }
+            ].map((item, idx) => (
+              <div key={idx} className={`flex flex-col md:flex-row items-stretch border-l-8 ${item.accent} bg-gray-50`}>
+                <div className="bg-eazypost-blue text-white p-8 md:w-64 flex flex-col items-center justify-center text-center">
+                  <div className="text-4xl md:text-5xl font-black">{item.stat}</div>
+                  <div className="text-[10px] uppercase tracking-widest font-bold text-gray-300 mt-1">{item.statLabel}</div>
+                </div>
+                <div className="flex-1 flex items-center gap-6 p-8">
+                  <div className="hidden md:flex w-16 h-16 bg-eazypost-red text-white items-center justify-center flex-shrink-0">
+                    <Icon icon={item.icon} className="text-2xl" />
+                  </div>
+                  <p className="text-gray-700 leading-relaxed text-sm">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* New Section: Global Infrastructure */}
       <section className="py-24 bg-eazypost-blue relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-white/5 skew-x-12 translate-x-1/2"></div>
@@ -159,6 +457,33 @@ const Home: React.FC = () => {
                 <Icon icon={FaGlobe} className="text-[200px] md:text-[300px] text-eazypost-red opacity-60 animate-pulse-slow" />
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Industries We Serve - Card Section */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-black text-eazypost-blue uppercase tracking-tight">Industries We <span className="text-eazypost-red">Serve</span></h2>
+            <div className="w-20 h-1 bg-eazypost-red mx-auto mt-4"></div>
+            <p className="mt-6 text-gray-600 max-w-2xl mx-auto">Specialized logistics solutions engineered for the unique demands of each sector.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { icon: FaHospital, title: "Healthcare & Pharma", desc: "Temperature-controlled cold chain logistics compliant with GDP and FDA standards. Real-time environmental monitoring for sensitive medical shipments." },
+              { icon: FaCar, title: "Automotive", desc: "Just-in-time parts delivery and vehicle logistics. Warehousing solutions for aftermarket components with global distribution coverage." },
+              { icon: FaShoppingCart, title: "E-Commerce & Retail", desc: "Omnichannel fulfillment with same-day processing. Integrated returns management and last-mile optimization for peak season scalability." },
+              { icon: FaApple, title: "Food & Beverage", desc: "Farm-to-table cold chain integrity with HACCP certification. Specialty handling for perishables, frozen goods, and bulk commodities." }
+            ].map((item, idx) => (
+              <div key={idx} className="bg-white p-8 shadow-sm hover:shadow-md transition-shadow border-b-4 border-eazypost-blue hover:border-eazypost-red group">
+                <div className="w-14 h-14 bg-eazypost-blue text-white flex items-center justify-center mb-6 group-hover:bg-eazypost-red transition-colors">
+                  <Icon icon={item.icon} className="text-2xl" />
+                </div>
+                <h3 className="text-lg font-black text-eazypost-blue uppercase tracking-tight mb-4">{item.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -216,6 +541,53 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* Digital Ecosystem - Feature Grid */}
+      <section className="py-24 bg-eazypost-blue text-white relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-eazypost-red via-transparent to-eazypost-red"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tight">Digital <span className="text-eazypost-red">Ecosystem</span></h2>
+            <div className="w-20 h-1 bg-eazypost-red mx-auto mt-4"></div>
+            <p className="mt-6 text-gray-300 max-w-3xl mx-auto">Enterprise-grade technology platform powering every stage of your logistics journey. All systems built on SOC 2 compliant infrastructure with 99.99% uptime SLA.</p>
+          </div>
+          <div className="max-w-5xl mx-auto">
+            {[
+              { icon: FaLaptop, title: "Client Portal", items: ["Real-time dashboard with live global tracking", "Custom reporting and analytics exports", "Multi-user role-based access controls", "Historical data archive with instant search"] },
+              { icon: FaCogs, title: "API Suite", items: ["RESTful webhooks for event-driven updates", "Inventory and order synchronization", "Automated label generation and booking", "Custom rate negotiation engine"] },
+              { icon: FaMobileAlt, title: "Mobile Platform", items: ["Push notifications for every status change", "Proof-of-delivery with photo capture", "In-app direct communication with dispatch", "Offline mode for remote operational areas"] }
+            ].map((section, idx) => (
+              <div key={idx} className={`flex flex-col md:flex-row gap-0 ${idx < 2 ? 'border-b border-white/10' : ''} ${idx > 0 ? 'pt-10' : ''} pb-10`}>
+                <div className="md:w-72 flex items-start gap-4 mb-6 md:mb-0">
+                  <div className="w-14 h-14 bg-eazypost-red flex items-center justify-center flex-shrink-0">
+                    <Icon icon={section.icon} className="text-2xl" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-white uppercase tracking-tight">{section.title}</h3>
+                    <Link to="/contact" className="text-eazypost-red text-[10px] uppercase tracking-widest font-black mt-1 hover:underline inline-block">Learn more →</Link>
+                  </div>
+                </div>
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {section.items.map((item, i) => (
+                    <div key={i} className="flex items-start gap-3 text-gray-300 text-sm">
+                      <Icon icon={FaCheckCircle} className="text-eazypost-red mt-0.5 flex-shrink-0 text-xs" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-12 pt-8 border-t border-white/10">
+            <Link
+              to="/contact"
+              className="inline-flex items-center px-10 py-4 bg-eazypost-red text-white font-black uppercase tracking-widest text-xs hover:bg-opacity-90 transition-all shadow-xl"
+            >
+              Request Platform Demo <Icon icon={FaRocket} className="ml-3" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Stats Section */}
       <section className="bg-eazypost-blue py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -267,30 +639,21 @@ const Home: React.FC = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+      <section className="py-24 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+          <div className="text-center">
             <h2 className="text-3xl font-black text-eazypost-blue uppercase">Global <span className="text-eazypost-red">Testimonials</span></h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[
-              {
-                text: "EazyPost LLC has transformed our international distribution. Their professionalism and adherence to timelines are unmatched in the industry.",
-                author: "Jonathan Reed",
-                role: "Director, Global Retail Inc."
-              },
-              {
-                text: "The real-time tracking accuracy provided by EazyPost gives us and our clients true peace of mind. Truly a top-tier courier service.",
-                author: "Sarah Jenkins",
-                role: "Logistics Manager, TechFlow"
-              }
-            ].map((t, idx) => (
-              <div key={idx} className="bg-gray-50 p-12 relative border-l-8 border-eazypost-red">
-                <Icon icon={FaQuoteLeft} className="text-4xl text-eazypost-blue opacity-10 absolute top-8 left-8" />
-                <p className="text-xl italic text-gray-700 relative z-10 mb-8 leading-relaxed">"{t.text}"</p>
-                <div>
-                  <div className="font-bold text-eazypost-blue uppercase">{t.author}</div>
-                  <div className="text-sm text-gray-500 uppercase tracking-widest">{t.role}</div>
+        </div>
+        <div className="relative flex overflow-x-hidden">
+          <div className="flex gap-8 animate-marquee whitespace-nowrap py-4">
+            {[...allTestimonials, ...allTestimonials].map((t, idx) => (
+              <div key={idx} className="inline-flex flex-col bg-gray-50 p-8 border-l-8 border-eazypost-red min-w-[400px] max-w-[400px] whitespace-normal text-left">
+                <Icon icon={FaQuoteLeft} className="text-3xl text-eazypost-blue opacity-10 mb-4" />
+                <p className="text-base italic text-gray-700 leading-relaxed mb-6 flex-1">"{t.text}"</p>
+                <div className="flex-shrink-0">
+                  <div className="font-bold text-eazypost-blue uppercase text-sm">{t.author}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-widest">{t.role}</div>
                 </div>
               </div>
             ))}

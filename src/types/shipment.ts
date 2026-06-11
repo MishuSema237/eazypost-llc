@@ -30,13 +30,11 @@ export interface Shipment {
     // Shipper Information
     shipperName: string;
     shipperAddress: string;
-    shipperPhone: string;
     shipperEmail: string;
 
     // Receiver Information
     receiverName: string;
     receiverAddress: string;
-    receiverPhone: string;
     receiverEmail: string;
 
     // Shipment Status

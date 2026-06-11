@@ -20,9 +20,9 @@ async function seedAdmin() {
         console.log('Connected to MongoDB');
 
         // --- CHANGE THESE VALUES AS NEEDED ---
-        const adminEmail = 'mishael@eazypost.com';
+        const adminEmail = 'eazypostllc@gmail.com';
         const adminPassword = 'NewSecretPassword2024!';
-        const adminUsername = 'MishaelAdmin';
+        const adminUsername = 'Eazy Post Admin';
         // --------------------------------------
 
         const existingUser = await User.findOne({ email: adminEmail });

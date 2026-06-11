@@ -24,9 +24,10 @@ module.exports = {
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         marquee: {
-          '0%': { transform: 'translateX(100%)' },
-          '100%': { transform: 'translateX(-100%)' },
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
+
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
@@ -35,7 +36,7 @@ module.exports = {
       animation: {
         fadeIn: 'fadeIn 0.5s ease-out forwards',
         slideUp: 'slideUp 0.5s ease-out forwards',
-        marquee: 'marquee 20s linear infinite',
+        marquee: 'marquee 120s linear infinite',
         float: 'float 3s ease-in-out infinite',
       }
     },

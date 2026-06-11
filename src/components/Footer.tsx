@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaPlane, FaShip, FaTruck, FaWarehouse } from 'react-icons/fa';
+import { FaEnvelope, FaMapMarkerAlt, FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaPlane, FaShip, FaTruck, FaWarehouse } from 'react-icons/fa';
 import Icon from './icons/Icon';
 import Logo from './Logo';
 import { useTheme } from '../contexts/ThemeContext';
@@ -63,7 +63,9 @@ const Footer: React.FC = () => {
             <ul className="space-y-3">
               <li><button onClick={() => handleNavClick('/faq')} className="text-gray-300 hover:text-eazypost-red transition-colors text-sm">FAQ</button></li>
               <li><button onClick={() => handleNavClick('/privacy')} className="text-gray-300 hover:text-eazypost-red transition-colors text-sm">Privacy Policy</button></li>
-              <li><button onClick={() => handleNavClick('/terms')} className="text-gray-300 hover:text-eazypost-red transition-colors text-sm">Terms & Conditions</button></li>
+              <li><button onClick={() => handleNavClick('/terms')} className="text-gray-300 hover:text-eazypost-red transition-colors text-sm">Terms of Service</button></li>
+              <li><button onClick={() => handleNavClick('/legal')} className="text-gray-300 hover:text-eazypost-red transition-colors text-sm">Legal</button></li>
+              <li><button onClick={() => handleNavClick('/accessibility')} className="text-gray-300 hover:text-eazypost-red transition-colors text-sm">Accessibility</button></li>
             </ul>
           </div>
 
@@ -74,12 +76,8 @@ const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-4">
               <li className="flex items-start space-x-3 text-gray-300">
-                <Icon icon={FaPhone} size={16} className="text-eazypost-red mt-1" />
-                <a href="tel:+19453924598" className="hover:text-eazypost-red text-sm transition-colors">+1 (945) 392-4598</a>
-              </li>
-              <li className="flex items-start space-x-3 text-gray-300">
                 <Icon icon={FaEnvelope} size={16} className="text-eazypost-red mt-1" />
-                <a href="mailto:eazypost@gmail.com" className="hover:text-eazypost-red text-sm transition-colors">eazypost@gmail.com</a>
+                <a href="mailto:eazypostllc@gmail.com" className="hover:text-eazypost-red text-sm transition-colors">eazypostllc@gmail.com</a>
               </li>
               <li className="flex items-start space-x-3 text-gray-300">
                 <Icon icon={FaMapMarkerAlt} size={16} className="text-eazypost-red mt-1" />

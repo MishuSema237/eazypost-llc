@@ -32,11 +32,9 @@ type ManifestFormData = Omit<Shipment, 'id' | 'trackingNumber' | 'createdAt' | '
 const defaultManifestForm: ManifestFormData = {
   shipperName: '',
   shipperAddress: '',
-  shipperPhone: '',
   shipperEmail: '',
   receiverName: '',
   receiverAddress: '',
-  receiverPhone: '',
   receiverEmail: '',
   origin: '',
   destination: '',
@@ -340,7 +338,6 @@ const AdministrationAndDevelopment: React.FC = () => {
                     <input type="text" placeholder="SHIPPER NAME" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.shipperName} onChange={e => setManifestFormData({ ...manifestFormData, shipperName: e.target.value })} />
                     <input type="text" placeholder="FULL ADDRESS" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.shipperAddress} onChange={e => setManifestFormData({ ...manifestFormData, shipperAddress: e.target.value })} />
                     <input type="email" placeholder="EMAIL ADDRESS" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.shipperEmail} onChange={e => setManifestFormData({ ...manifestFormData, shipperEmail: e.target.value })} />
-                    <input type="text" placeholder="PHONE NUMBER" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.shipperPhone} onChange={e => setManifestFormData({ ...manifestFormData, shipperPhone: e.target.value })} />
                   </div>
                 </div>
                 {/* Receiver */}
@@ -350,7 +347,6 @@ const AdministrationAndDevelopment: React.FC = () => {
                     <input type="text" placeholder="RECEIVER NAME" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.receiverName} onChange={e => setManifestFormData({ ...manifestFormData, receiverName: e.target.value })} />
                     <input type="text" placeholder="FULL ADDRESS" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.receiverAddress} onChange={e => setManifestFormData({ ...manifestFormData, receiverAddress: e.target.value })} />
                     <input type="email" placeholder="EMAIL ADDRESS" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.receiverEmail} onChange={e => setManifestFormData({ ...manifestFormData, receiverEmail: e.target.value })} />
-                    <input type="text" placeholder="PHONE NUMBER" className="w-full p-4 bg-gray-50 border-b-2 font-bold text-sm uppercase focus:border-eazypost-blue outline-none" required value={manifestFormData.receiverPhone} onChange={e => setManifestFormData({ ...manifestFormData, receiverPhone: e.target.value })} />
                   </div>
                 </div>
               </div>

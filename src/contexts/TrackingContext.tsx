@@ -27,11 +27,9 @@ export interface Shipment {
   expectedDeliveryDate: string;
   shipperName: string;
   shipperAddress: string;
-  shipperPhone: string;
   shipperEmail: string;
   receiverName: string;
   receiverAddress: string;
-  receiverPhone: string;
   receiverEmail: string;
   origin: string;
   destination: string;
@@ -88,12 +86,10 @@ export const TrackingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         expectedDeliveryDate: '2024-03-30',
         shipperName: 'John Doe',
         shipperAddress: '123 Main St, New York, USA',
-        shipperPhone: '+1 234 567 8900',
-        shipperEmail: 'john@example.com',
+        shipperEmail: 'eazypostllc@gmail.com',
         receiverName: 'Jane Smith',
         receiverAddress: '456 Oak Ave, London, UK',
-        receiverPhone: '+44 20 7123 4567',
-        receiverEmail: 'jane@example.com',
+        receiverEmail: 'eazypostllc@gmail.com',
         origin: 'New York, USA',
         destination: 'London, UK',
         carrier: 'Global Express',

@@ -15,6 +15,8 @@ import AdministrationAndDevelopment from './pages/AdministrationAndDevelopment';
 import NotFound from './pages/NotFound';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import Legal from './pages/Legal';
+import Accessibility from './pages/Accessibility';
 import { AuthProvider } from './contexts/AuthContext';
 import FAQ from './pages/FAQ';
 import { TrackingProvider } from './contexts/TrackingContext';
@@ -47,6 +49,8 @@ const App: React.FC = () => {
                   <Route path="/privacy" element={<Privacy />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/faq" element={<FAQ />} />
+                  <Route path="/legal" element={<Legal />} />
+                  <Route path="/accessibility" element={<Accessibility />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
