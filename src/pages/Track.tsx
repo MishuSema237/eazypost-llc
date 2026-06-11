@@ -194,26 +194,6 @@ const Track: React.FC = () => {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Right Column: Information & Details */}
-            <div className="space-y-8">
-              {/* Route Card */}
-              <div className="bg-eazypost-blue p-8 text-white">
-                <h3 className="text-lg font-black uppercase tracking-widest border-b border-white/20 pb-4 mb-6">Logistics Route</h3>
-                <div className="space-y-8 relative before:absolute before:left-[11px] before:top-4 before:bottom-4 before:w-0.5 before:border-l-2 before:border-dashed before:border-white/20">
-                  <div className="relative pl-8">
-                    <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-eazypost-red border-4 border-eazypost-blue"></div>
-                    <div className="text-xs uppercase font-black text-gray-400 mb-1">Point of Origin</div>
-                    <div className="font-bold text-lg">{shipment.origin}</div>
-                  </div>
-                  <div className="relative pl-8">
-                    <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-green-500 border-4 border-eazypost-blue"></div>
-                    <div className="text-xs uppercase font-black text-gray-400 mb-1">Final Destination</div>
-                    <div className="font-bold text-lg">{shipment.destination}</div>
-                  </div>
-                </div>
-              </div>
 
               {/* Shipment Details */}
               <div className="bg-white border border-gray-100 p-8 shadow-sm">
@@ -287,6 +267,26 @@ const Track: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Information & Details */}
+            <div className="space-y-8">
+              {/* Route Card */}
+              <div className="bg-eazypost-blue p-8 text-white">
+                <h3 className="text-lg font-black uppercase tracking-widest border-b border-white/20 pb-4 mb-6">Logistics Route</h3>
+                <div className="space-y-8 relative before:absolute before:left-[11px] before:top-4 before:bottom-4 before:w-0.5 before:border-l-2 before:border-dashed before:border-white/20">
+                  <div className="relative pl-8">
+                    <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-eazypost-red border-4 border-eazypost-blue"></div>
+                    <div className="text-xs uppercase font-black text-gray-400 mb-1">Point of Origin</div>
+                    <div className="font-bold text-lg">{shipment.origin}</div>
+                  </div>
+                  <div className="relative pl-8">
+                    <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-green-500 border-4 border-eazypost-blue"></div>
+                    <div className="text-xs uppercase font-black text-gray-400 mb-1">Final Destination</div>
+                    <div className="font-bold text-lg">{shipment.destination}</div>
+                  </div>
                 </div>
               </div>
 
